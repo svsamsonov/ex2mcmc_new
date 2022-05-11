@@ -1,5 +1,39 @@
 import numpy as np
 import torch
+from pyro.infer import HMC, MCMC, NUTS
+import pyro
+
+
+def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size = 100):
+    def true_target_energy(z):
+        return target(z)
+
+    def energy(z):
+        z = z["points"]
+        return true_target_energy(z)
+
+    # kernel = HMC(potential_fn=energy, step_size = 0.1, num_steps = K, full_mass = False)
+    kernel_true = NUTS(potential_fn=energy, full_mass=False)
+    #kernel_true = HMC(potential_fn=energy, full_mass=False)
+    pyro.set_rng_seed(45)
+    init_samples = torch.FloatTensor(np.random.randn(batch_size,lat_size))
+    print(init_samples.shape) 
+    #init_samples = torch.zeros_like(init_samples)
+    dim = init_samples.shape[-1]
+    init_params = {"points": init_samples}
+    mcmc_true = MCMC(
+        kernel=kernel_true,
+        num_samples=num_samples,
+        initial_params=init_params,
+        warmup_steps=burn_in,
+    )
+    mcmc_true.run()
+    
+
+    q_true = mcmc_true.get_samples(group_by_chain=True)["points"]
+    samples_true = np.array(q_true.view(-1, batch_size, dim))
+
+    return samples_true
 
 def discretesampling(w):
     u = np.random.rand()
