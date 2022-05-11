@@ -449,6 +449,13 @@ def ex2_mcmc_mala(
                 np.arange(batch_size), indices, :
                 ][:, None, :].repeat(1, N, 1).reshape(batch_size * N, z_dim) #z_pushed.reshape(batch_size * N, z_dim)
 
+        
+        if step_id != n_steps - 1:
+            if flow is not None:
+                z, _ = flow.inverse(z_pushed)
+            else:
+                z = z_pushed
+        
         for _ in range(mala_steps):
             E, grad = grad_energy(z_pushed, target)
             z_pushed, _, _, mask = mala_transition(
@@ -460,13 +467,6 @@ def ex2_mcmc_mala(
                 beta=beta,
             )
             acceptance += mask.float() / mala_steps
-        
-
-        if step_id != n_steps - 1:
-            if flow is not None:
-                z, _ = flow.inverse(z_pushed)
-            else:
-                z = z_pushed
 
         #if not ind_chains:
         #    z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), indices, :]
