@@ -376,6 +376,7 @@ def ex2_mcmc_mala(
     mala_steps=5,
     corr_coef=0.0,
     bernoulli_prob_corr=0.0,
+    device = 'cpu',
     flow=None,
     adapt_stepsize=True,
     verbose=False,
@@ -491,6 +492,7 @@ class Ex2MCMC(AbstractMCMC):
         mala_steps=5,
         corr_coef=0.0,
         bernoulli_prob_corr=0.0,
+        device = 'cpu',
         flow=None,
         adapt_stepsize=False,
         verbose=True,
@@ -506,6 +508,7 @@ class Ex2MCMC(AbstractMCMC):
         self.mala_steps = mala_steps
         self.corr_coef = corr_coef
         self.bernoulli_prob_corr = bernoulli_prob_corr
+        self.device = device
         self.flow = flow
         self.adapt_stepsize = adapt_stepsize
         self.verbose = verbose
@@ -529,17 +532,18 @@ class Ex2MCMC(AbstractMCMC):
 
 
 class FlowMCMC:
-    def __init__(self, target, proposal, flow, mcmc_call: callable, **kwargs):
+    def __init__(self, target, proposal, device, flow, mcmc_call: callable, **kwargs):
         self.flow = flow
         self.proposal = proposal
         self.target = target
+        self.device = device
         self.batch_size = kwargs.get("batch_size", 64)
         self.mcmc_call = mcmc_call
         self.grad_clip = kwargs.get("grad_clip", 1.0)
         self.jump_tol = kwargs.get("jump_tol", 1e5)
         optimizer = kwargs.get("optimizer", "adam")
         loss = kwargs.get("loss", "mix_kl")
-
+        self.flow.to(self.device)
         if isinstance(loss, (Callable, nn.Module)):
             self.loss = loss
         elif isinstance(loss, str):
@@ -566,7 +570,7 @@ class FlowMCMC:
             inp = self.proposal.sample((self.batch_size,))
         elif inv:
             inp, _ = self.flow.inverse(inp)
-
+        #print("before mcmc call")
         out = self.mcmc_call(inp, self.target, self.proposal, flow=self.flow)
         if isinstance(out, Tuple):
             acc_rate = out[1].mean()
@@ -574,7 +578,7 @@ class FlowMCMC:
         else:
             acc_rate = 1
         out = out[-1]
-
+        out = out.to(self.device)
         nll = -self.target(out).mean().item()
 
         if do_step:
@@ -605,13 +609,14 @@ class FlowMCMC:
         neg_log_likelihood = []
 
         for step_id in trange(n_steps):
-            if alpha is not None:
-                if isinstance(alpha, Callable):
-                    a = alpha(step_id)
-                elif isinstance(alpha, float):
-                    a = alpha
-            else:
-                a = min(1.0, 3 * step_id / n_steps)
+            #if alpha is not None:
+            #    if isinstance(alpha, Callable):
+            #        a = alpha(step_id)
+            #    elif isinstance(alpha, float):
+            #        a = alpha
+            #else:
+            a = min(0.5, 3 * step_id / n_steps)
+            #print("before train step")
             out, nll = self.train_step(
                 alpha=a,
                 do_step=step_id >= start_optim,

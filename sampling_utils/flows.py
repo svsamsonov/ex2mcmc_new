@@ -159,8 +159,9 @@ class DenseNN(ConditionalDenseNN):
 
 
 class RNVP(nn.Module):
-    def __init__(self, num_flows, dim, flows=None, init_weight_scale=1e-4):
+    def __init__(self, num_flows, dim, flows=None, device = 'cpu', init_weight_scale=1e-4):
         super().__init__()
+        self.device = device
         split_dim = dim // 2
         param_dims = [dim - split_dim, dim - split_dim]
         if flows is not None:
@@ -182,7 +183,7 @@ class RNVP(nn.Module):
                     for _ in range(num_flows)
                 ],
             )
-
+        self.flow.to(self.device)
         even = [i for i in range(0, dim, 2)]
         odd = [i for i in range(1, dim, 2)]
         reverse_eo = [
@@ -227,7 +228,7 @@ class RNVP(nn.Module):
         return z
 
     def forward(self, z):
-        log_jacob = torch.zeros_like(z[:, 0], dtype=torch.float32)
+        log_jacob = torch.zeros_like(z[:, 0], dtype=torch.float32).to(self.device)
         for i, current_flow in enumerate(self.flow):
             z = self.permute(z, i)
             z_new = current_flow(z)
@@ -237,7 +238,7 @@ class RNVP(nn.Module):
         return z, log_jacob
 
     def inverse(self, z):
-        log_jacob = torch.zeros_like(z[:, 0], dtype=torch.float32)
+        log_jacob = torch.zeros_like(z[:, 0], dtype=torch.float32).to(self.device)
         n = len(self.flow) - 1
         for i, current_flow in enumerate(self.flow[::-1]):
             z = self.permute(z, n - i)
