@@ -183,7 +183,7 @@ class RNVP(nn.Module):
                     for _ in range(num_flows)
                 ],
             )
-
+        self.flow.to(self.device)
         even = [i for i in range(0, dim, 2)]
         odd = [i for i in range(1, dim, 2)]
         reverse_eo = [

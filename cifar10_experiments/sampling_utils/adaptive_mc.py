@@ -576,7 +576,8 @@ class FlowMCMC:
             acc_rate = 1
         out = out[-1]
         out = out.to(self.device)
-
+        print(out.device)
+        print(out)
         nll = -self.target(out).mean().item()
 
         if do_step:
