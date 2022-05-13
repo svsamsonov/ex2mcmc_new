@@ -508,7 +508,7 @@ class Ex2MCMC(AbstractMCMC):
         self.corr_coef = corr_coef
         self.bernoulli_prob_corr = bernoulli_prob_corr
         self.device = device
-        self.flow = flow.to(self.device)
+        self.flow = flow
         self.adapt_stepsize = adapt_stepsize
         self.verbose = verbose
         self.ind_chains = ind_chains
@@ -569,7 +569,7 @@ class FlowMCMC:
             inp = self.proposal.sample((self.batch_size,))
         elif inv:
             inp, _ = self.flow.inverse(inp)
-
+        print("before mcmc call")
         out = self.mcmc_call(inp, self.target, self.proposal, flow=self.flow)
         if isinstance(out, Tuple):
             acc_rate = out[1].mean()
@@ -617,6 +617,7 @@ class FlowMCMC:
             #        a = alpha
             #else:
             a = min(0.5, 3 * step_id / n_steps)
+            print("before train step")
             out, nll = self.train_step(
                 alpha=a,
                 do_step=step_id >= start_optim,
