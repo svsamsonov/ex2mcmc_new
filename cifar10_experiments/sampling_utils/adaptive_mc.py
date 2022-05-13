@@ -533,7 +533,7 @@ class FlowMCMC:
         self.flow = flow
         self.proposal = proposal
         self.target = target
-        sekf.device = device
+        self.device = device
         self.batch_size = kwargs.get("batch_size", 64)
         self.mcmc_call = mcmc_call
         self.grad_clip = kwargs.get("grad_clip", 1.0)
