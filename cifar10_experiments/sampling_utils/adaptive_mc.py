@@ -491,6 +491,7 @@ class Ex2MCMC(AbstractMCMC):
         mala_steps=5,
         corr_coef=0.0,
         bernoulli_prob_corr=0.0,
+        device = 'cpu',
         flow=None,
         adapt_stepsize=False,
         verbose=True,
@@ -506,7 +507,8 @@ class Ex2MCMC(AbstractMCMC):
         self.mala_steps = mala_steps
         self.corr_coef = corr_coef
         self.bernoulli_prob_corr = bernoulli_prob_corr
-        self.flow = flow
+        self.device = device
+        self.flow = flow.to(self.device)
         self.adapt_stepsize = adapt_stepsize
         self.verbose = verbose
         self.ind_chains = ind_chains
