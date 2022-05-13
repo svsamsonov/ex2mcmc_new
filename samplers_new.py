@@ -9,20 +9,6 @@ from pyro.infer import HMC, MCMC, NUTS
 
 import tqdm
 
-# Auxiliary
-
-def grad_log_target_dens(log_target_dens, z):
-    """
-    returns the gradient of log-density 
-    """
-    
-    x = z.clone()
-    
-    x.requires_grad_(True)
-    external_grad = torch.ones(x.shape[0])
-    (log_target_dens(x)).backward(gradient=external_grad)
-    return x.grad.data.detach().cpu().numpy()
-
 # Samplers
 
 # NUTS
@@ -67,7 +53,7 @@ def grad_log_and_output_target_dens(log_target_dens, z):
     inp = torch.FloatTensor(z.data.detach())
     inp.requires_grad_(True)
 
-    output = log_target_dens(inp)
+    output = log_target_dens(inp, detach=False)
     output.sum().backward()
 
     grad = inp.grad.data.detach()
@@ -144,7 +130,7 @@ def i_sir_step(log_target_dens, x_cur, N_part, isir_proposal):
     proposals[:, 0, :] = x_cur
     
     # compute importance weights
-    logw = log_target_dens(proposals.reshape(-1, lat_size)).detach() - isir_proposal.log_prob(proposals.reshape(-1, lat_size))
+    logw = log_target_dens(proposals.reshape(-1, lat_size)) - isir_proposal.log_prob(proposals.reshape(-1, lat_size))
     logw = logw.reshape(N_samples, N_part)
     
     #sample selected particle indexes
