@@ -4,6 +4,21 @@ from pyro.infer import HMC, MCMC, NUTS
 import pyro
 
 
+def discretesampling(w):
+    u = np.random.rand()
+    bins = np.cumsum(w)
+    return np.digitize(u,bins)
+
+def grad_log_target_dens(log_target_dens, z):
+    """
+    returns the gradient of log-density 
+    """
+    x.requires_grad_(True)
+    external_grad = torch.ones(x.shape[0])
+    (log_target_dens(x)).backward(gradient=external_grad)
+    return x.grad.data.detach().cpu().numpy()
+
+
 def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size = 100):
     def true_target_energy(z):
         return target(z)
@@ -17,7 +32,7 @@ def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size =
     #kernel_true = HMC(potential_fn=energy, full_mass=False)
     pyro.set_rng_seed(45)
     init_samples = torch.FloatTensor(np.random.randn(batch_size,lat_size))
-    print(init_samples.shape) 
+    print(init_samples.shape)
     #init_samples = torch.zeros_like(init_samples)
     dim = init_samples.shape[-1]
     init_params = {"points": init_samples}
@@ -35,11 +50,6 @@ def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size =
 
     return samples_true
 
-def discretesampling(w):
-    u = np.random.rand()
-    bins = np.cumsum(w)
-    return np.digitize(u,bins)
-
 def mala(log_target_dens, grad_log_target_dens, logp_mala, x0, gamma, n, n_accepts=None):
     """
     function to perform n times MALA step 
@@ -53,7 +63,7 @@ def mala(log_target_dens, grad_log_target_dens, logp_mala, x0, gamma, n, n_accep
         log_prob_accept = np.minimum(0.0, log_target_dens(y) + logp_mala(grad_log_target_dens, x_cur,y,gamma) - log_target_dens(x_cur) - logp_mala(grad_log_target_dens, y,x_cur,gamma))
         
         #generate uniform distribution
-        unif = np.log(np.random.uniform())
+        unif = np.log(np.random.uniform(size=N_traj))
         indic_acc = (log_prob_accept > unif)
         indic_acc = indic_acc[:, None]
         
