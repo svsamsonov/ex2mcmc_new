@@ -542,7 +542,7 @@ class FlowMCMC:
         self.jump_tol = kwargs.get("jump_tol", 1e5)
         optimizer = kwargs.get("optimizer", "adam")
         loss = kwargs.get("loss", "mix_kl")
-
+        self.flow.to(self.device)
         if isinstance(loss, (Callable, nn.Module)):
             self.loss = loss
         elif isinstance(loss, str):
