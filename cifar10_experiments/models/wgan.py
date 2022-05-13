@@ -72,7 +72,7 @@ class Discriminator(torch.nn.Module):
 
         self.output = nn.Sequential(
             # The output of D is no longer a probability, we do not apply sigmoid at the output of D.
-            nn.Conv2d(in_channels=1024, out_channels=1, kernel_size=4, stride=1, padding=0))
+            nn.Conv2d(in_channels=1024, out_channels=1, kernel_size=4, stride=1, padding=0, bias=False))
 
 
     def forward(self, x):
