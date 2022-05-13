@@ -529,10 +529,11 @@ class Ex2MCMC(AbstractMCMC):
 
 
 class FlowMCMC:
-    def __init__(self, target, proposal, flow, mcmc_call: callable, **kwargs):
+    def __init__(self, target, proposal, device, flow, mcmc_call: callable, **kwargs):
         self.flow = flow
         self.proposal = proposal
         self.target = target
+        sekf.device = device
         self.batch_size = kwargs.get("batch_size", 64)
         self.mcmc_call = mcmc_call
         self.grad_clip = kwargs.get("grad_clip", 1.0)
@@ -574,6 +575,7 @@ class FlowMCMC:
         else:
             acc_rate = 1
         out = out[-1]
+        out = out.to(self.device)
 
         nll = -self.target(out).mean().item()
 
@@ -605,13 +607,13 @@ class FlowMCMC:
         neg_log_likelihood = []
 
         for step_id in trange(n_steps):
-            if alpha is not None:
-                if isinstance(alpha, Callable):
-                    a = alpha(step_id)
-                elif isinstance(alpha, float):
-                    a = alpha
-            else:
-                a = min(1.0, 3 * step_id / n_steps)
+            #if alpha is not None:
+            #    if isinstance(alpha, Callable):
+            #        a = alpha(step_id)
+            #    elif isinstance(alpha, float):
+            #        a = alpha
+            #else:
+            a = min(0.5, 3 * step_id / n_steps)
             out, nll = self.train_step(
                 alpha=a,
                 do_step=step_id >= start_optim,
