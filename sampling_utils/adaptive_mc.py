@@ -540,7 +540,7 @@ class FlowMCMC:
         self.batch_size = kwargs.get("batch_size", 64)
         self.mcmc_call = mcmc_call
         self.grad_clip = kwargs.get("grad_clip", 1.0)
-        self.jump_tol = kwargs.get("jump_tol", 1e5)
+        self.jump_tol = kwargs.get("jump_tol", 1e6)
         optimizer = kwargs.get("optimizer", "adam")
         loss = kwargs.get("loss", "mix_kl")
         self.flow.to(self.device)
