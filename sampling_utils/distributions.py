@@ -333,7 +333,7 @@ class Funnel(Distribution):
         super().__init__(**kwargs)
         self.device = kwargs.get("device", "cpu")
         self.a = (kwargs.get("a", 1.0) * torch.ones(1)).to(self.device)
-        self.b = (kwargs.get("b", 0.5)).to(self.device)
+        self.b = (kwargs.get("b", 0.5))
         self.dim = kwargs.get("dim", 16)
         self.distr1 = torch.distributions.Normal(torch.zeros(1), self.a)
         # self.distr2 = lambda z1: torch.distributions.MultivariateNormal(torch.zeros(self.dim-1), (2*self.b*z1).exp()*torch.eye(self.dim-1))
