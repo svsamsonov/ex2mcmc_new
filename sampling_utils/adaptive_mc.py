@@ -476,8 +476,9 @@ def ex2_mcmc_mala(
            z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), 0, :]
 
         z_sp.append(z_pushed.detach().cpu())
-        gc.collect()
-        torch.cuda.empty_cache()
+        if step_id % 100 == 0:
+            gc.collect()
+            torch.cuda.empty_cache()
 
     # z_sp.append(z_pushed.detach().cpu())
     acceptance /= n_steps
