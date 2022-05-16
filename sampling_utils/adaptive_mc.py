@@ -475,6 +475,8 @@ def ex2_mcmc_mala(
            z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), 0, :]
 
         z_sp.append(z_pushed.detach().cpu())
+        gc.collect()
+        torch.cuda.empty_cache()
 
     # z_sp.append(z_pushed.detach().cpu())
     acceptance /= n_steps
@@ -521,7 +523,8 @@ class Ex2MCMC(AbstractMCMC):
     def __call__(self, start: torch.Tensor, target, proposal, *args, **kwargs):
         self_kwargs = copy.copy(self.__dict__)
         self_kwargs.update(kwargs)
-
+        gc.collect()
+        torch.cuda.empty_cache()
         n_steps = self_kwargs.pop("n_steps")
         if len(args) > 0:
             n_steps = args[0]
