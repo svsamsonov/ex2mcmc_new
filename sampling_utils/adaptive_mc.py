@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from torch import nn
 from tqdm import tqdm, trange
+import gc
 
 from .adaptive_sir_loss import get_loss
 from .ebm_sampling import MALATransition, MHKernel, grad_energy
