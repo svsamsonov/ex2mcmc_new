@@ -460,7 +460,7 @@ def ex2_mcmc_mala(
                 adapt_stepsize=adapt_stepsize,
                 beta=beta,
             )
-            acceptance += mask.float() / mala_steps
+            acceptance += mask.cpu().float() / mala_steps
             
         if step_id != n_steps - 1:
             if flow is not None:
