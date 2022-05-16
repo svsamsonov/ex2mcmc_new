@@ -134,7 +134,7 @@ def compute_metrics(
 #begin script
 dims = [10,20,50,100,200]
 step_size = [0.2,0.1,0.1,5e-2,5e-2]
-num_replications = 10
+num_replications = 50
 device = 'cuda:0'
 
 res_nuts = {"time":[],"ess":[],"emd":[],"tv":[]}
@@ -144,48 +144,48 @@ res_isir = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_adaptive_isir = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_flex = {"time":[],"ess":[],"emd":[],"tv":[]}
 
-for j in range(len(dims)):
-    dim = dims[j]
-    #initialize distribution params 
-    scale_proposal = 1.
-    scale_isir = 3.
-    dist_class = "Funnel"
-    a = 2.0
-    b = 0.5
-    target = Funnel(
+
+for i in range(num_replications):
+    for j in range(len(dims)):
+        dim = dims[j]
+        #initialize distribution params 
+        scale_proposal = 1.
+        scale_isir = 3.
+        dist_class = "Funnel"
+        a = 2.0
+        b = 0.5
+        target = Funnel(
                 dim=dim,
                 device=device,
                 a = a,
                 b = b
                 #**dist_params.dict,
-    )
+        )
 
-    loc_proposal = torch.zeros(dim).to(device)
-    scale_proposal = scale_proposal * torch.ones(dim).to(device)
-    scale_isir = scale_isir * torch.ones(dim).to(device)
+        loc_proposal = torch.zeros(dim).to(device)
+        scale_proposal = scale_proposal * torch.ones(dim).to(device)
+        scale_isir = scale_isir * torch.ones(dim).to(device)
 
-    proposal = IndependentNormal(
-        dim=dim,
-        loc=loc_proposal,
-        scale=scale_proposal,
-        device=device,
-    )
+        proposal = IndependentNormal(
+            dim=dim,
+            loc=loc_proposal,
+            scale=scale_proposal,
+            device=device,
+        )
 
-    proposal_ex2 = IndependentNormal(
-        dim=dim,
-        loc=loc_proposal,
-        scale=scale_isir,
-        device=device,
-    )
-    #generate ground-truth samples
-    N_samples = 5*10**3
-    np.random.seed(42)
-    True_samples = np.random.randn(N_samples,dim)
-    True_samples[:,0] *= a 
-    for k in range(1,dim):
-        True_samples[:,k] *= np.exp(True_samples[:,0]/2) 
-        
-    for i in range(num_replications):
+        proposal_ex2 = IndependentNormal(
+            dim=dim,
+            loc=loc_proposal,
+            scale=scale_isir,
+            device=device,
+        )
+        #generate ground-truth samples
+        N_samples = 5*10**3
+        np.random.seed(42)
+        True_samples = np.random.randn(N_samples,dim)
+        True_samples[:,0] *= a 
+        for k in range(1,dim):
+            True_samples[:,k] *= np.exp(True_samples[:,0]/2) 
         #sample NUTS
         #samples to compute ground-truth metrics
         Nuts_samples_ground_truth = 2000
