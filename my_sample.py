@@ -129,8 +129,9 @@ def compute_metrics(
 
 
 #begin script
-dims = [10,20,50,100,200]
-step_size = [0.2,0.1,5e-2,5e-2,5e-2]
+#dims = [10,20,50,100,200]
+dims = [20,40,60,80,100]
+step_size = [0.1,0.1,5e-2,5e-2,5e-2]
 num_replications = 50
 device = 'cuda:0'
 
