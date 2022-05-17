@@ -86,7 +86,7 @@ def compute_metrics(
 ):
     metrics = dict()
     key = jax.random.PRNGKey(0)
-    n_steps = 15
+    n_steps = 25
     # n_samples = 100
 
     ess = ESS(
@@ -131,13 +131,14 @@ def compute_metrics(
 #begin script
 dims = [10,20,50,100,200]
 step_size = [0.2,0.1,5e-2,5e-2,5e-2]
-num_replications = 50
+n_steps_training = [200,200,200,400,400]
+num_replications = 20
 device = 'cuda:0'
 
 res_nuts = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_ex2 = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_mala = {"time":[],"ess":[],"emd":[],"tv":[]}
-res_isir = {"time":[],"ess":[],"emd":[],"tv":[]}
+#res_isir = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_adaptive_isir = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_flex = {"time":[],"ess":[],"emd":[],"tv":[]}
 
@@ -147,15 +148,21 @@ for i in range(num_replications):
         dim = dims[j]
         #initialize distribution params 
         scale_proposal = 1.
-        scale_isir = 3.
-        dist_class = "Funnel"
-        a = 2.0
-        b = 0.5
-        target = Funnel(
+        scale_isir = 5.
+        dist_class = "Banana"
+        dist_params = {
+            "b": 0.02,
+            "sigma":5.0,
+        }
+        sigma = 5.0
+        b = 0.02
+        
+        target = Banana(
                 dim=dim,
                 device=device,
-                a = a,
-                b = b
+                b = b,
+                sigma = sigma,
+                #b = b
                 #**dist_params.dict,
         )
 
@@ -180,9 +187,11 @@ for i in range(num_replications):
         N_samples = 5*10**3
         np.random.seed(42)
         True_samples = np.random.randn(N_samples,dim)
-        True_samples[:,0] *= a 
-        for k in range(1,dim):
-            True_samples[:,k] *= np.exp(True_samples[:,0]/2) 
+        for i in range(dim):
+            if i % 2 == 0:
+                True_samples[:,i] *= sigma
+            else:
+                True_samples[:,i] += b*True_samples[:,i-1]**2 - (sigma**2)*b
         #sample NUTS
         #samples to compute ground-truth metrics
         Nuts_samples_ground_truth = 2000
@@ -193,6 +202,7 @@ for i in range(num_replications):
         #nuts batch size
         nuts_batch = 1
         rand_seed = 42 + i
+        batch_size = 1
         time_cur, sample_nuts_ref = sample_nuts(
                 target,
                 proposal,
@@ -213,49 +223,14 @@ for i in range(num_replications):
         res_nuts["ess"].append(metrics["ess"])
         res_nuts["emd"].append(metrics["emd"])
         res_nuts["tv"].append(metrics["tv_mean"])
-        #sample i-SIR
-        params = {
-            "N": 200,
-            "grad_step": step_size[j],
-            "adapt_stepsize": False, #True
-            "corr_coef": 0.0,
-            "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 0
-        }
-        n_steps_ex2 = 1000
-        batch_size = 1
-        mcmc = Ex2MCMC(**params, dim=dim)
-        pyro.set_rng_seed(rand_seed)
-        start = proposal_ex2.sample((batch_size,)).to(device)
-        start_time = time.time()
-        out = mcmc(start, target, proposal_ex2, n_steps = n_steps_ex2)
-        if isinstance(out, tuple):
-            sample = out[0]
-        else:
-            sample = out
-        sample = np.array(
-            [_.detach().numpy() for _ in sample],
-        ).reshape(-1, batch_size, dim)
-        end_time = time.time()
-        res_isir["time"].append(end_time-start_time)
-        metrics = compute_metrics(
-                    True_samples,
-                    sample,
-                    name="i-SIR",
-                    trunc_chain_len=trunc_chain_len,
-                    ess_rar=1,
-        )
-        res_isir["ess"].append(metrics["ess"])
-        res_isir["emd"].append(metrics["emd"])
-        res_isir["tv"].append(metrics["tv_mean"])
         #sample MALA
         params = {
             "N": 1,
             "grad_step": step_size[j],
-            "adapt_stepsize": False, #True
+            "adapt_stepsize": True, #True
             "corr_coef": 0.0,
             "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 3
+            "mala_steps": 5
         }
         n_steps_ex2 = 1000
         batch_size = 1
@@ -290,7 +265,7 @@ for i in range(num_replications):
             "adapt_stepsize": True, #True
             "corr_coef": 0.0,
             "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 3
+            "mala_steps": 5
         }
         n_steps_ex2 = 1000
         batch_size = 1
@@ -330,7 +305,7 @@ for i in range(num_replications):
               "num_flows": 4, # number of normalizing layers 
               "lr": 1e-3, # learning rate 
               "batch_size": 100,
-              "n_steps": 2000,
+              "n_steps": n_steps_training[j],
             }
         }
         pyro.set_rng_seed(rand_seed)
@@ -389,8 +364,6 @@ for i in range(num_replications):
         res_adaptive_isir["emd"].append(metrics["emd"])
         res_adaptive_isir["tv"].append(metrics["tv_mean"])
         #sample Flex2
-        gc.collect()
-        torch.cuda.empty_cache()
         n_steps_flex2 = 1000
         pyro.set_rng_seed(rand_seed)
         mcmc.mala_steps = 5
@@ -420,15 +393,15 @@ for i in range(num_replications):
         del mcmc.flow
         gc.collect()
         torch.cuda.empty_cache()
-        with open('res_nuts.pickle', 'wb') as handle:
+        with open('./banana/res_nuts.pickle', 'wb') as handle:
             pickle.dump(res_nuts, handle)
-        with open('res_mala.pickle', 'wb') as handle:
+        with open('./banana/res_mala.pickle', 'wb') as handle:
             pickle.dump(res_mala, handle)
-        with open('res_isir.pickle', 'wb') as handle:
-            pickle.dump(res_isir, handle)
-        with open('res_ex2.pickle', 'wb') as handle:
+        #with open('res_isir.pickle', 'wb') as handle:
+        #    pickle.dump(res_isir, handle)
+        with open('./banana/res_ex2.pickle', 'wb') as handle:
             pickle.dump(res_ex2, handle)
-        with open('adaptive_isir.pickle', 'wb') as handle:
+        with open('./banana/adaptive_isir.pickle', 'wb') as handle:
             pickle.dump(res_adaptive_isir, handle)
-        with open('res_flex.pickle', 'wb') as handle:
+        with open('./banana/res_flex.pickle', 'wb') as handle:
             pickle.dump(res_flex, handle)
