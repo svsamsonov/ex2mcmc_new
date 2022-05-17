@@ -131,9 +131,9 @@ def compute_metrics(
 #begin script
 dims = [10,20,50,100,200]
 step_size = [0.2,0.1,5e-2,5e-2,5e-2]
-n_steps_training = [200,200,200,400,400]
+#n_steps_training = [200,200,200,400,400]
 num_replications = 20
-device = 'cuda:0'
+device = "cuda"
 
 res_nuts = {"time":[],"ess":[],"emd":[],"tv":[]}
 res_ex2 = {"time":[],"ess":[],"emd":[],"tv":[]}
@@ -305,7 +305,7 @@ for i in range(num_replications):
               "num_flows": 4, # number of normalizing layers 
               "lr": 1e-3, # learning rate 
               "batch_size": 100,
-              "n_steps": n_steps_training[j],
+              "n_steps": 2000,
             }
         }
         pyro.set_rng_seed(rand_seed)
