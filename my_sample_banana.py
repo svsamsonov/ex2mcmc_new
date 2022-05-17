@@ -202,6 +202,26 @@ for i in range(num_replications):
         nuts_batch = 1
         rand_seed = 42 + i
         batch_size = 1
+        time_cur, sample_nuts_ref = sample_nuts(
+                target,
+                proposal,
+                device,
+                num_samples=trunc_chain_len,
+                batch_size=nuts_batch,
+                burn_in=nuts_burn_in,
+                rand_seed = rand_seed
+        )
+        res_nuts["time"].append(time_cur)
+        metrics = compute_metrics(
+                    True_samples,
+                    sample_nuts_ref,
+                    name="NUTS",
+                    trunc_chain_len=trunc_chain_len,
+                    ess_rar=1,
+        )
+        res_nuts["ess"].append(metrics["ess"])
+        res_nuts["emd"].append(metrics["emd"])
+        res_nuts["tv"].append(metrics["tv_mean"])
         #sample MALA
         params = {
             "N": 1,
