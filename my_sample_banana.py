@@ -131,7 +131,7 @@ def compute_metrics(
 #begin script
 dims = [10,20,50,100,200]
 step_size = [0.2,0.1,5e-2,5e-2,5e-2]
-n_steps_training = [200,200,200,500,500]
+n_steps_training = [200,200,200,400,400]
 num_replications = 20
 device = 'cuda:0'
 
@@ -230,7 +230,7 @@ for i in range(num_replications):
             "adapt_stepsize": True, #True
             "corr_coef": 0.0,
             "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 3
+            "mala_steps": 5
         }
         n_steps_ex2 = 1000
         batch_size = 1
@@ -366,7 +366,7 @@ for i in range(num_replications):
         #sample Flex2
         n_steps_flex2 = 1000
         pyro.set_rng_seed(rand_seed)
-        mcmc.mala_steps = 3
+        mcmc.mala_steps = 5
         start = proposal.sample((batch_size,))
         # s = time.time()
         out = mcmc(start, target, proposal, n_steps = n_steps_flex2)
