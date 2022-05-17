@@ -249,45 +249,45 @@ for i in range(num_replications):
         res_isir["emd"].append(metrics["emd"])
         res_isir["tv"].append(metrics["tv_mean"])
         #sample MALA
-        params = {
-            "N": 1,
-            "grad_step": step_size[j],
-            "adapt_stepsize": False, #True
-            "corr_coef": 0.0,
-            "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 3
-        }
-        n_steps_ex2 = 1000
-        batch_size = 1
-        mcmc = Ex2MCMC(**params, dim=dim)
-        pyro.set_rng_seed(rand_seed)
-        start = proposal_ex2.sample((batch_size,)).to(device)
-        start_time = time.time()
-        out = mcmc(start, target, proposal_ex2, n_steps = n_steps_ex2)
-        if isinstance(out, tuple):
-            sample = out[0]
-        else:
-            sample = out
-        sample = np.array(
-            [_.detach().numpy() for _ in sample],
-        ).reshape(-1, batch_size, dim)
-        end_time = time.time()
-        res_mala["time"].append(end_time-start_time)
-        metrics = compute_metrics(
-                    True_samples,
-                    sample,
-                    name="MALA",
-                    trunc_chain_len=trunc_chain_len,
-                    ess_rar=1,
-        )
-        res_mala["ess"].append(metrics["ess"])
-        res_mala["emd"].append(metrics["emd"])
-        res_mala["tv"].append(metrics["tv_mean"])
+        #params = {
+        #    "N": 1,
+        #    "grad_step": step_size[j],
+        #    "adapt_stepsize": False, #True
+        #    "corr_coef": 0.0,
+        #    "bernoulli_prob_corr": 0.0, #0.75
+        #    "mala_steps": 3
+        #}
+        #n_steps_ex2 = 1000
+        #batch_size = 1
+        #mcmc = Ex2MCMC(**params, dim=dim)
+        #pyro.set_rng_seed(rand_seed)
+        #start = proposal_ex2.sample((batch_size,)).to(device)
+        #start_time = time.time()
+        #out = mcmc(start, target, proposal_ex2, n_steps = n_steps_ex2)
+        #if isinstance(out, tuple):
+        #    sample = out[0]
+        #else:
+        #    sample = out
+        #sample = np.array(
+        #    [_.detach().numpy() for _ in sample],
+        #).reshape(-1, batch_size, dim)
+        #end_time = time.time()
+        #res_mala["time"].append(end_time-start_time)
+        #metrics = compute_metrics(
+        #            True_samples,
+        #            sample,
+        #            name="MALA",
+        #            trunc_chain_len=trunc_chain_len,
+        #            ess_rar=1,
+        #)
+        #res_mala["ess"].append(metrics["ess"])
+        #res_mala["emd"].append(metrics["emd"])
+        #res_mala["tv"].append(metrics["tv_mean"])
         #sample Ex2-MCMC
         params = {
             "N": 200,
             "grad_step": step_size[j],
-            "adapt_stepsize": True, #True
+            "adapt_stepsize": False, #True
             "corr_coef": 0.0,
             "bernoulli_prob_corr": 0.0, #0.75
             "mala_steps": 3
@@ -322,7 +322,7 @@ for i in range(num_replications):
         params_flex = {
               "N": 200,
               "grad_step": step_size[j],
-              "adapt_stepsize": True,
+              "adapt_stepsize": False,
               "corr_coef": 0.0,
               "bernoulli_prob_corr": 0.0,
               "mala_steps": 0,
@@ -393,7 +393,7 @@ for i in range(num_replications):
         torch.cuda.empty_cache()
         n_steps_flex2 = 1000
         pyro.set_rng_seed(rand_seed)
-        mcmc.mala_steps = 5
+        mcmc.mala_steps = 3
         start = proposal.sample((batch_size,))
         # s = time.time()
         out = mcmc(start, target, proposal, n_steps = n_steps_flex2)
@@ -422,8 +422,8 @@ for i in range(num_replications):
         torch.cuda.empty_cache()
         with open('res_nuts.pickle', 'wb') as handle:
             pickle.dump(res_nuts, handle)
-        with open('res_mala.pickle', 'wb') as handle:
-            pickle.dump(res_mala, handle)
+        #with open('res_mala.pickle', 'wb') as handle:
+        #    pickle.dump(res_mala, handle)
         with open('res_isir.pickle', 'wb') as handle:
             pickle.dump(res_isir, handle)
         with open('res_ex2.pickle', 'wb') as handle:
