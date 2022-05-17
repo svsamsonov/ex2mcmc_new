@@ -94,10 +94,10 @@ def mix_kl(
     beta=0.1,
     gamma=None,
 ):  # .2):
-    est_f, grad_est_f = forward_kl(target, proposal, flow, y)
+    #est_f, grad_est_f = forward_kl(target, proposal, flow, y)
     est_b, grad_est_b = backward_kl(target, proposal, flow, y)
     #entr, grad_est_entr = entropy(target, proposal, flow, y, acc_rate=acc_rate)
-    imp_f, grad_imp_f = importance_forward_kl(target, proposal, flow, y)
+    #imp_f, grad_imp_f = importance_forward_kl(target, proposal, flow, y)
 
     if torch.isnan(grad_est_b).item():
         grad_est_b = 0
@@ -106,13 +106,13 @@ def mix_kl(
         gamma = alpha
 
     return (
-        alpha * est_f
-        + (1.0 - alpha) * est_b
-        + gamma * grad_imp_f,
+        #alpha * est_f
+         (1.0 - alpha) * est_b
+        #+ gamma * grad_imp_f,
         #- beta * entr,
-        alpha * grad_est_f
-        + (1.0 - alpha) * grad_est_b
-        + gamma * grad_imp_f,
+        #alpha * grad_est_f
+         (1.0 - alpha) * grad_est_b
+        #+ gamma * grad_imp_f,
         #- beta * grad_est_entr,
     )
 

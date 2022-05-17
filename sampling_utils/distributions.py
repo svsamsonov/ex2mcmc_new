@@ -436,7 +436,8 @@ class HalfBanana(Distribution):
 class Banana(Distribution):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.Q = kwargs.get("Q", 0.01) * torch.ones(1)
+        self.device = kwargs.get("device", "cpu")
+        self.Q = kwargs.get("Q", 0.01) * torch.ones(1).to(self.device)
         self.dim = kwargs.get("dim", 32)
         self.xlim = [-1, 5]
         self.ylim = [-2, 2]
