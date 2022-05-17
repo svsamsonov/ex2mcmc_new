@@ -437,7 +437,8 @@ class Banana(Distribution):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.device = kwargs.get("device", "cpu")
-        self.Q = kwargs.get("Q", 0.01) * torch.ones(1).to(self.device)
+        self.b = kwargs.get("b", 0.02)# * torch.ones(1).to(self.device)
+        self.sigma = kwargs.get("sigma", 100.0)# * torch.ones(1).to(self.device)
         self.dim = kwargs.get("dim", 32)
         self.xlim = [-1, 5]
         self.ylim = [-2, 2]
@@ -450,8 +451,8 @@ class Banana(Distribution):
         odd = np.arange(1, self.dim, 2)
 
         ll = (
-            -((z[..., even] - z[..., odd] ** 2) ** 2) / self.Q
-            - (z[..., even] - 1) ** 2
+            -0.5*(z[..., odd] - self.b*z[..., even]**2 + self.sigma*self.b)**2
+            - ((z[..., even])**2)/(2*self.sigma**2)
         )
         return ll.sum(-1)
 
