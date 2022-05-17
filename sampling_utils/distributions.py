@@ -451,7 +451,7 @@ class Banana(Distribution):
         odd = np.arange(1, self.dim, 2)
 
         ll = (
-            -0.5*(z[..., odd] - self.b*z[..., even]**2 + self.sigma*self.b)**2
+            -0.5*(z[..., odd] - self.b*z[..., even]**2 + (self.sigma**2)*self.b)**2
             - ((z[..., even])**2)/(2*self.sigma**2)
         )
         return ll.sum(-1)
