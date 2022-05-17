@@ -131,6 +131,7 @@ def compute_metrics(
 #begin script
 dims = [10,20,50,100,200]
 step_size = [0.2,0.1,5e-2,5e-2,5e-2]
+n_steps_training = [200,200,200,500,500]
 num_replications = 20
 device = 'cuda:0'
 
@@ -264,7 +265,7 @@ for i in range(num_replications):
             "adapt_stepsize": True, #True
             "corr_coef": 0.0,
             "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 3
+            "mala_steps": 5
         }
         n_steps_ex2 = 1000
         batch_size = 1
@@ -304,7 +305,7 @@ for i in range(num_replications):
               "num_flows": 4, # number of normalizing layers 
               "lr": 1e-3, # learning rate 
               "batch_size": 100,
-              "n_steps": 2000,
+              "n_steps": n_steps_training[j],
             }
         }
         pyro.set_rng_seed(rand_seed)
@@ -392,15 +393,15 @@ for i in range(num_replications):
         del mcmc.flow
         gc.collect()
         torch.cuda.empty_cache()
-        with open('/banana/res_nuts.pickle', 'wb') as handle:
+        with open('./banana/res_nuts.pickle', 'wb') as handle:
             pickle.dump(res_nuts, handle)
-        with open('/banana/res_mala.pickle', 'wb') as handle:
+        with open('./banana/res_mala.pickle', 'wb') as handle:
             pickle.dump(res_mala, handle)
         #with open('res_isir.pickle', 'wb') as handle:
         #    pickle.dump(res_isir, handle)
-        with open('/banana/res_ex2.pickle', 'wb') as handle:
+        with open('./banana/res_ex2.pickle', 'wb') as handle:
             pickle.dump(res_ex2, handle)
-        with open('/banana/adaptive_isir.pickle', 'wb') as handle:
+        with open('./banana/adaptive_isir.pickle', 'wb') as handle:
             pickle.dump(res_adaptive_isir, handle)
-        with open('/banana/res_flex.pickle', 'wb') as handle:
+        with open('./banana/res_flex.pickle', 'wb') as handle:
             pickle.dump(res_flex, handle)

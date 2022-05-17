@@ -287,7 +287,7 @@ for i in range(num_replications):
         params = {
             "N": 200,
             "grad_step": step_size[j],
-            "adapt_stepsize": False, #True
+            "adapt_stepsize": True, #True
             "corr_coef": 0.0,
             "bernoulli_prob_corr": 0.0, #0.75
             "mala_steps": 3
@@ -322,7 +322,7 @@ for i in range(num_replications):
         params_flex = {
               "N": 200,
               "grad_step": step_size[j],
-              "adapt_stepsize": False,
+              "adapt_stepsize": True,
               "corr_coef": 0.0,
               "bernoulli_prob_corr": 0.0,
               "mala_steps": 0,
@@ -393,7 +393,7 @@ for i in range(num_replications):
         torch.cuda.empty_cache()
         n_steps_flex2 = 1000
         pyro.set_rng_seed(rand_seed)
-        mcmc.mala_steps = 3
+        mcmc.mala_steps = 5
         start = proposal.sample((batch_size,))
         # s = time.time()
         out = mcmc(start, target, proposal, n_steps = n_steps_flex2)
