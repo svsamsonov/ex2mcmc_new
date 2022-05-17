@@ -107,11 +107,11 @@ def mix_kl(
 
     return (
         #alpha * est_f
-         (1.0 - alpha) * est_b
+         (1.0 - alpha) * est_b,
         #+ gamma * grad_imp_f,
         #- beta * entr,
         #alpha * grad_est_f
-         (1.0 - alpha) * grad_est_b
+         (1.0 - alpha) * grad_est_b,
         #+ gamma * grad_imp_f,
         #- beta * grad_est_entr,
     )
