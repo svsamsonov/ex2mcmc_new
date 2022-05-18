@@ -17,12 +17,12 @@ from torch import distributions
 from torch.nn.parameter import Parameter
 
 class RealNVPProposal(nn.Module):
-    def __init__(self, lat_size, hidden=32, num_blocks=4):
+    def __init__(self, lat_size, device, hidden=32, num_blocks=4):
         super(RealNVPProposal, self).__init__()
         
         self.prior = MultivariateNormal(
-            torch.zeros(lat_size), 
-            torch.eye(lat_size))
+            torch.zeros(lat_size).to(device), 
+            torch.eye(lat_size).to(device))
         
         masks = num_blocks * [[i % 2 for i in range(lat_size)], [(i + 1) % 2 for i in range(lat_size)]]
         masks = torch.FloatTensor(masks)
