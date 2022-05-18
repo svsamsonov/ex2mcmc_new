@@ -204,6 +204,7 @@ for i in range(num_replications):
         nuts_burn_in = 500
         #sample Flex2MCMC 
         rand_seed = 42 + i
+        batch_size = 1
         pyro.set_rng_seed(rand_seed)
         params_flex = {
               "N": 200,
