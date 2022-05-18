@@ -304,15 +304,15 @@ for i in range(num_replications):
         del mcmc.flow
         gc.collect()
         torch.cuda.empty_cache()
-        with open('./banana/res_nuts.pickle', 'wb') as handle:
-            pickle.dump(res_nuts, handle)
-        with open('./banana/res_mala.pickle', 'wb') as handle:
-            pickle.dump(res_mala, handle)
+        #with open('./banana/res_nuts.pickle', 'wb') as handle:
+        #    pickle.dump(res_nuts, handle)
+        #with open('./banana/res_mala.pickle', 'wb') as handle:
+        #    pickle.dump(res_mala, handle)
         #with open('res_isir.pickle', 'wb') as handle:
         #    pickle.dump(res_isir, handle)
-        with open('./banana/res_ex2.pickle', 'wb') as handle:
-            pickle.dump(res_ex2, handle)
-        with open('./banana/adaptive_isir.pickle', 'wb') as handle:
+        #with open('./banana/res_ex2.pickle', 'wb') as handle:
+        #    pickle.dump(res_ex2, handle)
+        with open('./banana/adaptive_isir_1000.pickle', 'wb') as handle:
             pickle.dump(res_adaptive_isir, handle)
-        with open('./banana/res_flex.pickle', 'wb') as handle:
+        with open('./banana/res_flex_1000.pickle', 'wb') as handle:
             pickle.dump(res_flex, handle)
