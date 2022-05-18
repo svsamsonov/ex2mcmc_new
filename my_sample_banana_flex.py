@@ -190,11 +190,11 @@ for i in range(num_replications):
         N_samples = 5*10**3
         np.random.seed(42)
         True_samples = np.random.randn(N_samples,dim)
-        for i in range(dim):
-            if i % 2 == 0:
-                True_samples[:,i] *= sigma
+        for k in range(dim):
+            if k % 2 == 0:
+                True_samples[:,k] *= sigma
             else:
-                True_samples[:,i] += b*True_samples[:,i-1]**2 - (sigma**2)*b
+                True_samples[:,k] += b*True_samples[:,k-1]**2 - (sigma**2)*b
         #sample NUTS
         #samples to compute ground-truth metrics
         Nuts_samples_ground_truth = 2000
