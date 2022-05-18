@@ -50,7 +50,7 @@ def grad_log_and_output_target_dens(log_target_dens, z):
     """
     returns the gradient of log-density 
     """
-    inp = torch.FloatTensor(z.data.detach())
+    inp = z.clone()
     inp.requires_grad_(True)
 
     output = log_target_dens(inp, detach=False)
@@ -68,7 +68,7 @@ def mala_step(log_target_dens, x0, gamma, mala_iters, n_accepts=None):
     device = x0.device
     
     #generate proposals
-    x_cur = torch.FloatTensor(x0.data.detach())
+    x_cur = x0
     for i in range(mala_iters):
         x_cur_grad, x_cur_log_target = grad_log_and_output_target_dens(log_target_dens, x_cur)
         x_cur_proposal = MultivariateNormal(x_cur + gamma * x_cur_grad, 2 * gamma * torch.eye(lat_size)[None, :, :].repeat(N_samples, 1, 1).to(device))
@@ -83,7 +83,7 @@ def mala_step(log_target_dens, x0, gamma, mala_iters, n_accepts=None):
         log_prob_accept = torch.clamp(log_prob_accept, max=0.0)
         
         #generate uniform distribution
-        trhd = torch.log(torch.rand(N_samples))
+        trhd = torch.log(torch.rand(N_samples).to(device))
         indic_acc = (log_prob_accept > trhd).float()
 
         indic_acc = indic_acc[:, None]
