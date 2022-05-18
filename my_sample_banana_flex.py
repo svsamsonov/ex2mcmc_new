@@ -129,10 +129,13 @@ def compute_metrics(
 
 
 #begin script
-dims = [20,40,60,80,100]
-step_size = [0.2,0.1,5e-2,5e-2,5e-2]
+#dims = [10,20,50,100,200]
+dims = [80,100]
+step_size =[5e-2,5e-2]
+#step_size = [0.2,0.1,5e-2,5e-2,5e-2]
 #n_steps_training = [200,200,200,400,400]
-num_replications = 20
+n_steps_training = [1000,1000]
+num_replications = 25
 device = "cuda"
 
 res_nuts = {"time":[],"ess":[],"emd":[],"tv":[]}
@@ -199,101 +202,10 @@ for i in range(num_replications):
         trunc_chain_len = 1000
         #nuts samples burn_in
         nuts_burn_in = 500
-        #nuts batch size
-        nuts_batch = 1
+        #sample Flex2MCMC 
         rand_seed = 42 + i
         batch_size = 1
-        time_cur, sample_nuts_ref = sample_nuts(
-                target,
-                proposal,
-                device,
-                num_samples=trunc_chain_len,
-                batch_size=nuts_batch,
-                burn_in=nuts_burn_in,
-                rand_seed = rand_seed
-        )
-        res_nuts["time"].append(time_cur)
-        metrics = compute_metrics(
-                    True_samples,
-                    sample_nuts_ref,
-                    name="NUTS",
-                    trunc_chain_len=trunc_chain_len,
-                    ess_rar=1,
-        )
-        res_nuts["ess"].append(metrics["ess"])
-        res_nuts["emd"].append(metrics["emd"])
-        res_nuts["tv"].append(metrics["tv_mean"])
-        #sample MALA
-        params = {
-            "N": 1,
-            "grad_step": step_size[j],
-            "adapt_stepsize": True, #True
-            "corr_coef": 0.0,
-            "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 5
-        }
-        n_steps_ex2 = 1000
-        batch_size = 1
-        mcmc = Ex2MCMC(**params, dim=dim)
         pyro.set_rng_seed(rand_seed)
-        start = proposal_ex2.sample((batch_size,)).to(device)
-        start_time = time.time()
-        out = mcmc(start, target, proposal_ex2, n_steps = n_steps_ex2)
-        if isinstance(out, tuple):
-            sample = out[0]
-        else:
-            sample = out
-        sample = np.array(
-            [_.detach().numpy() for _ in sample],
-        ).reshape(-1, batch_size, dim)
-        end_time = time.time()
-        res_mala["time"].append(end_time-start_time)
-        metrics = compute_metrics(
-                    True_samples,
-                    sample,
-                    name="MALA",
-                    trunc_chain_len=trunc_chain_len,
-                    ess_rar=1,
-        )
-        res_mala["ess"].append(metrics["ess"])
-        res_mala["emd"].append(metrics["emd"])
-        res_mala["tv"].append(metrics["tv_mean"])
-        #sample Ex2-MCMC
-        params = {
-            "N": 200,
-            "grad_step": step_size[j],
-            "adapt_stepsize": True, #True
-            "corr_coef": 0.0,
-            "bernoulli_prob_corr": 0.0, #0.75
-            "mala_steps": 5
-        }
-        n_steps_ex2 = 1000
-        batch_size = 1
-        mcmc = Ex2MCMC(**params, dim=dim)
-        pyro.set_rng_seed(rand_seed)
-        start = proposal_ex2.sample((batch_size,)).to(device)
-        start_time = time.time()
-        out = mcmc(start, target, proposal_ex2, n_steps = n_steps_ex2)
-        if isinstance(out, tuple):
-            sample = out[0]
-        else:
-            sample = out
-        sample = np.array(
-            [_.detach().numpy() for _ in sample],
-        ).reshape(-1, batch_size, dim)
-        end_time = time.time()
-        res_ex2["time"].append(end_time-start_time)
-        metrics = compute_metrics(
-                    True_samples,
-                    sample,
-                    name="Ex2MCMC",
-                    trunc_chain_len=trunc_chain_len,
-                    ess_rar=1,
-        )
-        res_ex2["ess"].append(metrics["ess"])
-        res_ex2["emd"].append(metrics["emd"])
-        res_ex2["tv"].append(metrics["tv_mean"])
-        #sample Flex2MCMC 
         params_flex = {
               "N": 200,
               "grad_step": step_size[j],
@@ -393,15 +305,15 @@ for i in range(num_replications):
         del mcmc.flow
         gc.collect()
         torch.cuda.empty_cache()
-        with open('./banana/res_nuts.pickle', 'wb') as handle:
-            pickle.dump(res_nuts, handle)
-        with open('./banana/res_mala.pickle', 'wb') as handle:
-            pickle.dump(res_mala, handle)
+        #with open('./banana/res_nuts.pickle', 'wb') as handle:
+        #    pickle.dump(res_nuts, handle)
+        #with open('./banana/res_mala.pickle', 'wb') as handle:
+        #    pickle.dump(res_mala, handle)
         #with open('res_isir.pickle', 'wb') as handle:
         #    pickle.dump(res_isir, handle)
-        with open('./banana/res_ex2.pickle', 'wb') as handle:
-            pickle.dump(res_ex2, handle)
-        with open('./banana/adaptive_isir.pickle', 'wb') as handle:
+        #with open('./banana/res_ex2.pickle', 'wb') as handle:
+        #    pickle.dump(res_ex2, handle)
+        with open('./banana/adaptive_isir_1000.pickle', 'wb') as handle:
             pickle.dump(res_adaptive_isir, handle)
-        with open('./banana/res_flex.pickle', 'wb') as handle:
+        with open('./banana/res_flex_1000.pickle', 'wb') as handle:
             pickle.dump(res_flex, handle)

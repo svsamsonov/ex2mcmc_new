@@ -129,10 +129,11 @@ def compute_metrics(
 
 
 #begin script
+#dims = [10,20,50,100,200]
 dims = [20,40,60,80,100]
 step_size = [0.2,0.1,5e-2,5e-2,5e-2]
-#n_steps_training = [200,200,200,400,400]
-num_replications = 20
+n_steps_training = [1000,1000,1000,1200,1500]
+num_replications = 50
 device = "cuda"
 
 res_nuts = {"time":[],"ess":[],"emd":[],"tv":[]}
@@ -187,11 +188,11 @@ for i in range(num_replications):
         N_samples = 5*10**3
         np.random.seed(42)
         True_samples = np.random.randn(N_samples,dim)
-        for k in range(dim):
-            if k % 2 == 0:
-                True_samples[:,k] *= sigma
+        for i in range(dim):
+            if i % 2 == 0:
+                True_samples[:,i] *= sigma
             else:
-                True_samples[:,k] += b*True_samples[:,k-1]**2 - (sigma**2)*b
+                True_samples[:,i] += b*True_samples[:,i-1]**2 - (sigma**2)*b
         #sample NUTS
         #samples to compute ground-truth metrics
         Nuts_samples_ground_truth = 2000
@@ -303,9 +304,9 @@ for i in range(num_replications):
               "mala_steps": 0,
             "flow": {
               "num_flows": 4, # number of normalizing layers 
-              "lr": 1e-3, # learning rate 
+              "lr": 5e-4, # learning rate 
               "batch_size": 100,
-              "n_steps": 1000,
+              "n_steps": n_steps_training[j],
             }
         }
         pyro.set_rng_seed(rand_seed)
