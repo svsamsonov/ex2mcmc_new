@@ -60,7 +60,7 @@ def grad_log_and_output_target_dens(log_target_dens, z):
 
     return grad, output.data.detach()
 
-def mala_step(log_target_dens, x0, gamma, mala_iters, n_accepts=None):
+def mala_step(log_target_dens, x0, gamma, mala_iters, stats=None):
     """
     function to perform n times MALA step 
     """
@@ -88,13 +88,13 @@ def mala_step(log_target_dens, x0, gamma, mala_iters, n_accepts=None):
 
         indic_acc = indic_acc[:, None]
         
-        if n_accepts is not None:
-            n_accepts += indic_acc.sum().item()
+        if stats is not None:
+            stats['n_accepts'] += indic_acc.sum().item()
 
         x_cur = indic_acc * x_next + (1-indic_acc) * x_cur
     return x_cur
 
-def mala(log_target_dens, x0, N_steps, gamma, mala_iters, n_accepts=None, seed=42):
+def mala(log_target_dens, x0, N_steps, gamma, mala_iters, stats=None, seed=42):
     torch.manual_seed(seed)
     np.random.seed(seed)
     ### sample i-sir
@@ -103,7 +103,7 @@ def mala(log_target_dens, x0, N_steps, gamma, mala_iters, n_accepts=None, seed=4
     x_cur = x0
     
     for _ in tqdm.tqdm(range(N_steps)):
-        x_cur =  mala_step(log_target_dens, x_cur, gamma, mala_iters, n_accepts=None)
+        x_cur =  mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
         samples_traj.append(x_cur)
 
     samples_traj = torch.stack(samples_traj).transpose(0, 1)
@@ -112,7 +112,7 @@ def mala(log_target_dens, x0, N_steps, gamma, mala_iters, n_accepts=None, seed=4
 
 # I-SIR
 
-def i_sir_step(log_target_dens, x_cur, N_part, isir_proposal):
+def i_sir_step(log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=False):
     """
     function to sample with N-particles version of i-SIR
     args:
@@ -124,19 +124,23 @@ def i_sir_step(log_target_dens, x_cur, N_part, isir_proposal):
     N_samples, lat_size = x_cur.shape
     
     # generate proposals
-    proposals = isir_proposal.sample((N_samples, N_part, ))
+    proposals = isir_proposal.sample((N_samples, N_part - 1, ))
     
     # put current particles
-    proposals[:, 0, :] = x_cur
-    
+    proposals = torch.cat((x_cur[:, None, :], proposals), dim=1)
+
     # compute importance weights
-    logw = log_target_dens(proposals.reshape(-1, lat_size)) - isir_proposal.log_prob(proposals.reshape(-1, lat_size))
-    logw = logw.reshape(N_samples, N_part)
+    log_target_dens_proposals = log_target_dens(proposals.reshape(-1, lat_size)).reshape(N_samples, N_part)
+    
+    logw = log_target_dens_proposals - isir_proposal.log_prob(proposals)
     
     #sample selected particle indexes
     idxs = Categorical(logits=logw).sample()
 
-    return proposals[torch.arange(N_samples), idxs]
+    if return_all_stats:
+        return proposals[torch.arange(N_samples), idxs], proposals, log_target_dens_proposals
+    else:
+        return proposals[torch.arange(N_samples), idxs]
 
 def i_sir(log_target_dens, x0, N_steps, N_part, isir_proposal, seed=42):
     torch.manual_seed(seed)
@@ -156,7 +160,7 @@ def i_sir(log_target_dens, x0, N_steps, N_part, isir_proposal, seed=42):
 
 # Ex2MCMC
 
-def ex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal ,gamma,mala_iters, n_accepts=None, seed=42):
+def ex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal ,gamma, mala_iters, stats=None, seed=42):
     torch.manual_seed(seed)
     np.random.seed(seed)
     ### sample i-sir
@@ -166,7 +170,7 @@ def ex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal ,gamma,mala_ite
     
     for _ in tqdm.tqdm(range(N_steps)):
         x_cur = i_sir_step(log_target_dens, x_cur, N_part, isir_proposal)
-        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, n_accepts=None)
+        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
         samples_traj.append(x_cur)
 
     samples_traj = torch.stack(samples_traj).transpose(0, 1)
