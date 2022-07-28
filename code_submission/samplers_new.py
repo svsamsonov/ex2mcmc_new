@@ -269,11 +269,9 @@ def ex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal ,gamma, mala_it
 def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_iters, add_pop_size_train=4096, stats=None, seed=42):
     torch.manual_seed(seed)
     np.random.seed(seed)
-
     ### sample i-sir
     samples_traj = [x0]
     x_cur = x0
-
     proposal_opt = torch.optim.Adam(isir_proposal.parameters(), lr=1e-3)
     
     pbar = tqdm.tqdm(range(N_steps))
@@ -319,7 +317,7 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
         e = -isir_proposal.log_prob(torch.randn_like(proposals_flattened)).mean()
         
         # opt step
-        loss = kl_forw + kl_back + 0.1 * e
+        loss = kl_forw + 0.1*kl_back + 0.1 * e
         loss.backward()
         proposal_opt.step()
         
