@@ -17,12 +17,12 @@ from torch import distributions
 from torch.nn.parameter import Parameter
 
 class RealNVPProposal(nn.Module):
-    def __init__(self, lat_size, device, hidden=32, num_blocks=4):
+    def __init__(self, lat_size, device, hidden=32, num_blocks=4, prior_scale=1.0):
         super(RealNVPProposal, self).__init__()
         
         self.prior = MultivariateNormal(
             torch.zeros(lat_size).to(device), 
-            torch.eye(lat_size).to(device))
+            torch.eye(lat_size).to(device) * prior_scale)
         
         masks = num_blocks * [[i % 2 for i in range(lat_size)], [(i + 1) % 2 for i in range(lat_size)]]
         masks = torch.FloatTensor(masks)
@@ -302,6 +302,8 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
         population_log_proposal_prob = isir_proposal.log_prob(population_proposals)
         logw = population_log_target_dens_proposals - population_log_proposal_prob
         
+        
+
         kl_forw = -(population_log_proposal_prob * torch.softmax(logw, dim=-1)).sum()
         
         # backward KL
@@ -317,7 +319,7 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
         e = -isir_proposal.log_prob(torch.randn_like(proposals_flattened)).mean()
         
         # opt step
-        loss = kl_forw + 0.1*kl_back + 0.1 * e
+        loss = kl_forw + 0.1 * kl_back + 0.1 * e
         loss.backward()
         proposal_opt.step()
         
@@ -333,3 +335,78 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
     samples_traj = torch.stack(samples_traj).transpose(0, 1)
     
     return samples_traj
+
+def flex2_mcmc_wcoefs(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_iters, add_pop_size_train=4096, stats=None, seed=42, coef_kl_forw=1.0, coef_kl_back=0.1, coef_entropy=0.0):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    
+    losses = []
+
+    ### sample i-sir
+    samples_traj = [x0]
+    x_cur = x0
+    proposal_opt = torch.optim.Adam(isir_proposal.parameters(), lr=1e-3)
+    
+    pbar = tqdm.tqdm(range(N_steps))
+    
+    hist_proposals = None
+    hist_log_target_dens_proposals = None
+    
+    for _ in pbar:
+        x_cur, proposals, log_target_dens_proposals = i_sir_step(log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=True)
+        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
+        samples_traj.append(x_cur)
+        
+        # train proposal
+        proposal_opt.zero_grad()
+        
+        # forward KL
+        proposals_flattened = proposals.reshape(-1, proposals.shape[-1])
+        log_target_dens_proposals_flattened = log_target_dens_proposals.reshape(-1)    
+        
+        population_proposals = proposals_flattened
+        population_log_target_dens_proposals = log_target_dens_proposals_flattened
+        
+        if hist_proposals is not None:
+            idxs = np.random.permutation(hist_proposals.shape[0])[:add_pop_size_train]
+            population_proposals = torch.cat((population_proposals, hist_proposals[idxs]))
+            population_log_target_dens_proposals = torch.cat((population_log_target_dens_proposals, hist_log_target_dens_proposals[idxs]))
+
+        population_log_proposal_prob = isir_proposal.log_prob(population_proposals)
+        logw = population_log_target_dens_proposals - population_log_proposal_prob
+
+        # print(population_log_proposal_prob.shape)
+        
+        kl_forw = -(population_log_proposal_prob * torch.softmax(logw, dim=-1)).sum()
+        
+        # backward KL
+        cur_samples_x = proposals[:, 1:, :].reshape(-1, proposals.shape[-1])
+        cur_samples_z, log_det_J = isir_proposal.f(cur_samples_x)
+        
+        cur_samples_x_diff = isir_proposal.g(cur_samples_z.detach())[0]
+        log_target_dens_proposals_diff = log_target_dens(cur_samples_x_diff, detach=False)
+        
+        kl_back = -(log_target_dens_proposals_diff + log_det_J).mean()
+        
+        # entropy reg
+        e = -isir_proposal.log_prob(torch.randn_like(proposals_flattened)).mean()
+        
+        # opt step
+        loss = coef_kl_forw * kl_forw + coef_kl_back * kl_back + coef_entropy * e
+        losses.append(loss.item())
+        loss.backward()
+        proposal_opt.step()
+        
+        # if _ % () == 0:
+        #     pbar.set_description(f"KL forw {kl_forw.item()}, KL back {kl_back.item()} Hentr {e.item()}")
+
+        if hist_proposals is None:
+            hist_proposals = proposals_flattened
+            hist_log_target_dens_proposals = log_target_dens_proposals_flattened
+        else:
+            hist_proposals = torch.cat((hist_proposals, proposals_flattened), dim=0)
+            hist_log_target_dens_proposals = torch.cat((hist_log_target_dens_proposals, log_target_dens_proposals_flattened), dim=0)
+        
+    samples_traj = torch.stack(samples_traj).transpose(0, 1)
+    
+    return samples_traj, losses, isir_proposal
