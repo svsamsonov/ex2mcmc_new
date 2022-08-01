@@ -16,12 +16,12 @@ from torch import distributions
 from torch.nn.parameter import Parameter
 
 class RealNVPProposal(nn.Module):
-    def __init__(self, lat_size, device, hidden=32, num_blocks=4):
+    def __init__(self, lat_size, device, hidden=32, num_blocks=4, prior_scale=1.0):
         super(RealNVPProposal, self).__init__()
         
         self.prior = MultivariateNormal(
             torch.zeros(lat_size).to(device), 
-            torch.eye(lat_size).to(device))
+            torch.eye(lat_size).to(device) * prior_scale)
         
         masks = num_blocks * [[i % 2 for i in range(lat_size)], [(i + 1) % 2 for i in range(lat_size)]]
         masks = torch.FloatTensor(masks)
@@ -314,11 +314,7 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
     hist_log_target_dens_proposals = None
     
     for _ in pbar:
-        x_cur, proposals, log_target_dens_proposals = i_sir_step(log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=True)
-        #print("proposals shape: ", proposals.shape)
-        #print("log_target_dens_proposals shape: ", log_target_dens_proposals.shape)
-        
-        
+        x_cur, proposals, log_target_dens_proposals = i_sir_step(log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=True) 
         # train proposal
         proposal_opt.zero_grad()
                
@@ -334,9 +330,7 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
         #    population_log_target_dens_proposals = torch.cat((population_log_target_dens_proposals, hist_log_target_dens_proposals[idxs]))
 
         population_log_proposal_prob = isir_proposal.log_prob(proposals)
-        #print("population proposals shape: ", population_log_proposal_prob.shape)
         logw = log_target_dens_proposals - population_log_proposal_prob
-        #print("logw shape: ", logw.shape)
         
         kl_forw = -((population_log_proposal_prob * torch.softmax(logw, dim=-1)).sum(axis=-1)).mean()
         
@@ -353,7 +347,7 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
         #e = -isir_proposal.log_prob(torch.randn_like(proposals_flattened)).mean()
         
         # opt step
-        #loss = kl_back
+
         loss = alpha*kl_forw + (1-alpha)*kl_back # + 0.1 * e
         loss.backward()
         proposal_opt.step()
@@ -369,7 +363,6 @@ def flex2_mcmc(log_target_dens, x0, N_steps, N_part, isir_proposal, gamma, mala_
         #else:
         #    hist_proposals = torch.cat((hist_proposals, proposals_flattened), dim=0)
         #    hist_log_target_dens_proposals = torch.cat((hist_log_target_dens_proposals, log_target_dens_proposals_flattened), dim=0)
-        
     samples_traj = torch.stack(samples_traj).transpose(0, 1)
     return samples_traj
 
@@ -391,24 +384,14 @@ def flex2_mcmc_imh(log_target_dens, x0, N_steps, N_part, mh_proposal, gamma, mal
     
     for _ in pbar:
         x_cur = mh_step(log_target_dens, x_cur, mh_proposal)
-        samples_traj.append(x_cur)
-        
-        # train proposal
-        proposal_opt.zero_grad()
-        
         # forward KL
-        #x_loc = 
         log_proposal_prob = mh_proposal.log_prob(x_cur)
         log_proposal_prob_flattened = log_proposal_prob.reshape(-1)  
-        
         #if hist_proposals is not None:
         #    idxs = np.random.permutation(hist_proposals.shape[0])[:add_pop_size_train]
         #    population_proposals = torch.cat((population_proposals, hist_proposals[idxs]))
         #    population_log_target_dens_proposals = torch.cat((population_log_target_dens_proposals, hist_log_target_dens_proposals[idxs]))
-        
         kl_forw = -log_proposal_prob_flattened.mean()
-        
-        
         # backward KL
         N_samples, lat_size = x_cur.shape
         cur_samples_x = mh_proposal.sample((N_steps, N_part, )).reshape(-1, lat_size)
@@ -429,8 +412,11 @@ def flex2_mcmc_imh(log_target_dens, x0, N_steps, N_part, mh_proposal, gamma, mal
         
         #perform MALA update
         x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
+        samples_traj.append(x_cur)
         
         pbar.set_description(f"KL forw {kl_forw.item()}, KL back {kl_back.item()}")# Hentr {e.item()}")
         
     samples_traj = torch.stack(samples_traj).transpose(0, 1)
     return samples_traj
+        
+        
