@@ -51,11 +51,29 @@ poetry install
 
 Download checkpoints:
 
+CIFAR10:
+
 | GAN   |     Steps     |  Path, G |  Path, D |
 |:----------|:-------------:|:------:|:------:|
-| DCGAN NS  | 100k      |   [TBD]() |   [TBD]() |
-| SNGAN NS  | 100k      |   [TBD]() |   [TBD]() |
-| WGAN GP   | --        |   [TBD]() |   [TBD]() |
+| DCGAN NS  | 100k      |   [netG_100000_steps.pth](https://drive.google.com/file/d/1gv8_qr_xa8hJzdJpBXiKr8v922EqcE-E/view?usp=share_link) |   [netD_100000_steps.pth](https://drive.google.com/file/d/1u1sPUmlvyhcbNDX2DVsR-mGOzqQ6U8sh/view?usp=share_link) |
+| SNGAN, Hinge  | 100k      |   [netG.pth](https://drive.google.com/file/d/118zC_iEkN27jGLVNmDuQpMeyw7BKOUra/view?usp=share_link) |   [netD.pth](https://drive.google.com/file/d/1xU5FV59TLhAlkFubJGmJVS87HnZZ2xHT/view?usp=share_link) |
+
+MNIST:
+
+| GAN      |  Path |
+|:----------|:-------------:|
+| Vanilla  |   [vanilla_gan.pth](https://drive.google.com/file/d/1xa1v4hPQQdU2RkhjMn5sFZCITxTJ5Dhj/view?usp=share_link) |
+| WGAN CP  |   [wgan.pth](https://drive.google.com/file/d/17nQJnfs2_T6kyahnkW3fu8AVY54kmRmw/view?usp=share_link) |
+
+You also can run script to download checkpoints:
+
+
+```bash
+chmod +x get_ckpts.sh
+./get_ckpts.sh
+```
+
+<!-- | WGAN GP   | --        |   [TBD]() |   [TBD]() | -->
 
 ## Usage
 
