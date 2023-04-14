@@ -1,24 +1,36 @@
-# Local-Global MCMC kernels: the bost of both worlds
+# Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
 
-This repository contains Python code to reproduce experiments from [**Local-Global MCMC kernels: the bost of both worlds**](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html) (NeurIPS'22).
+[[ArXiv]](https://arxiv.org/abs/2111.02702)
+
+Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey Naumov, Eric Moulines.
+
+> **Abstract:** *Recent works leveraging learning to enhance sampling have shown promising results, in particular by designing effective non-local moves and global proposals. However, learning accuracy is inevitably limited in regions where little data is available such as in the tails of distributions as well as in high-dimensional problems. In the present paper we study an Explore-Exploit Markov chain Monte Carlo strategy (Ex2MCMC) that combines local and global samplers showing that it enjoys the advantages of both approaches. We prove V-uniform geometric ergodicity of Ex2MCMC without requiring a uniform adaptation of the global sampler to the target distribution. We also compute explicit bounds on the mixing rate of the Explore-Exploit strategy under realistic conditions. Moreover, we also analyze an adaptive version of the strategy (FlEx2MCMC) where a normalizing flow is trained while sampling to serve as a proposal for global moves. We illustrate the efficiency of Ex2MCMC and its adaptive version on classical sampling benchmarks as well as in sampling high-dimensional distributions defined by Generative Adversarial Networks seen as Energy Based Models.*
+> 
+<!-- This repository contains Python code to reproduce experiments from [**Local-Global MCMC kernels: the bost of both worlds**](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html) (NeurIPS'22). -->
 
 
-- [Local-Global MCMC kernels: the bost of both worlds](#local-global-mcmc-kernels-the-bost-of-both-worlds)
+- [Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) \[Paper\]](#local-global-mcmc-kernels-the-bost-of-both-worlds-neurips-2022-paper)
+  - [Single chain mixing](#single-chain-mixing)
+  - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
   - [Algorithms](#algorithms)
-  - [Setup](#setup)
+  - [Installation](#installation)
   - [Usage](#usage)
     - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
     - [Experiments with GANs on MNIST dataset](#experiments-with-gans-on-mnist-dataset)
     - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
-    - [Experiments with GANs on CIFAR10 and FID computation](#experiments-with-gans-on-cifar10-and-fid-computation)
+    - [Sampling and FID computation](#sampling-and-fid-computation)
   - [Results](#results)
   - [Citation](#citation)
 
+## Single chain mixing
+
 <img src="./imgs/gaussian_mixture.png" alt="i-SIR" width="900"/>
 
+## Sampling from GAN as Energy-Based Models with MCMC
 
 
-<img src="./imgs/fid_flex.png" alt="FID" width="250"/> <img src="./imgs/is_flex.png" alt="Inception Score" width="260"/> <img src="./imgs/energy_flex.png" alt="Energy" width="270"/> 
+<img src="./imgs/fid_flex.png" alt="FID" width="385"/> <img src="./imgs/is_flex.png" alt="Inception Score" width="400"/> 
+<!-- <img src="./imgs/energy_flex.png" alt="Energy" width="270"/>  -->
 
 
 ## Algorithms 
@@ -34,7 +46,7 @@ This repository contains Python code to reproduce experiments from [**Local-Glob
 
 <img src="./algs/flex.png" alt="FlEx2MCMC" width="600"/>
 
-## Setup
+## Installation
 
 Create environment:
 
@@ -93,10 +105,14 @@ gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz
 |:----------|:-------|:-----:|
 | Toyish Gaussian   |     ```exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
 | Gaussian mixture  |     ```exp_synthetic/gaussian_mixture.ipynb``` | [TBD]() |
-| Banana-shaped distribution   |     ```exp_synthetic/banana.ipynb``` | [TBD]() |
-| Neal's funnel distribution   |     ```exp_synthetic/funnel.ipynb``` | [TBD]() |
 | FlEx for banana-shaped distribution   |     ```exp_synthetic/flex_banana.ipynb``` | [TBD]() |
 | FlEx for Neal's funnel distribution   |     ```exp_synthetic/flex_funnel.ipynb``` | [TBD]() |
+
+To reproduce the experimets on banana-shaped and funnel distributions:
+
+```bash
+python exp_synthetic/banana_funnel_metrics.py --distribution {banana,funnel} --device cuda:0
+```
 
  ### Experiments with GANs on MNIST dataset
  
@@ -110,10 +126,10 @@ gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz
 
 ```cifar10_experiments/SNGAN_samples.ipynb```
 
-### Experiments with GANs on CIFAR10 and FID computation
+### Sampling and FID computation
 
 ```bash
-python run.py configs/mcmc_configs/{ula/mala/isir/ex2mcmc/flex2mcmc}.yml configs/mmc_dcgan.yml
+python run.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
 ```
 
 ## Results
@@ -133,7 +149,7 @@ Generation trajectories for DCGAN, top to bottom: i-SIR, MALA, Ex2MCMC, FlEx2MCM
 
 ## Citation
 
-```
+```bibtex
 @article{samsonov2022local,
   title={Local-Global MCMC kernels: the best of both worlds},
   author={Samsonov, Sergey and Lagutin, Evgeny and Gabri{\'e}, Marylou and Durmus, Alain and Naumov, Alexey and Moulines, Eric},
