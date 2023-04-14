@@ -274,4 +274,3 @@ class RNVP(nn.Module):
         z = self.prior.sample(shape).detach()
         x, _ = self.inverse(z)
         return x
-    

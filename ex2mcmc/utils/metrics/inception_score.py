@@ -83,7 +83,6 @@ def batch_inception(
     inception_model: nn.Module,
     resize: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-
     device = imgs.device
     up = nn.Upsample(size=(299, 299), mode="bilinear").to(device)
 

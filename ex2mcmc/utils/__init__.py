@@ -1,1 +1,1 @@
-from .general_utils import  PROJECT_PATH, CHECKPOINT_DIR, time_comp, time_comp_cls
+from .general_utils import CHECKPOINT_DIR, PROJECT_PATH, time_comp, time_comp_cls

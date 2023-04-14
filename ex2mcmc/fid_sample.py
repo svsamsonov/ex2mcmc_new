@@ -6,8 +6,8 @@ from torch import nn
 from torch.distributions import Distribution as torchDist
 from tqdm import trange
 
-from .gan_distribution import Distribution, DiscriminatorTarget
 from .fid_samplers import MCMCRegistry
+from .gan_distribution import DiscriminatorTarget, Distribution
 from .utils import time_comp_cls
 from .utils.callbacks import Callback
 
@@ -67,18 +67,18 @@ class Sampler:
         self,
         z: torch.Tensor,
         it: int = 1,
-        #data_batch: Optional[torch.FloatTensor] = None,
+        # data_batch: Optional[torch.FloatTensor] = None,
         meta: Optional[Dict] = None,
         keep_graph: bool = False,
     ) -> Tuple[torch.Tensor, Dict]:
-        #self._ref_dist.data_batch = data_batch
+        # self._ref_dist.data_batch = data_batch
         pts, meta = self.mcmc(
             self.sampling,
             z,
             self.target,
             proposal=self.gen.proposal,
-            #n_samples=self.n_sampling_steps,
-            #burn_in=self.n_sampling_steps - 1,
+            # n_samples=self.n_sampling_steps,
+            # burn_in=self.n_sampling_steps - 1,
             project=self.ref_dist.project,
             **self.mcmc_args,
             meta=meta,
@@ -96,7 +96,7 @@ class Sampler:
         self,
         z: torch.Tensor,
         n_steps: Optional[int] = None,
-        #data_batch: Optional[torch.FloatTensor] = None,
+        # data_batch: Optional[torch.FloatTensor] = None,
         collect_imgs: bool = False,
         keep_graph: bool = False,
     ) -> Tuple[List, List, List, List]:

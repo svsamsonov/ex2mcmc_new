@@ -1,8 +1,9 @@
+# from flax import struct
+from dataclasses import dataclass
+
 import jax
 import numpy as np
 import ot
-# from flax import struct
-from dataclasses import dataclass
 from jax import numpy as jnp
 from scipy.stats import gaussian_kde
 from tqdm.auto import trange

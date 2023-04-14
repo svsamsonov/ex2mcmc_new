@@ -1,2 +1,2 @@
 from .base import ModelRegistry
-from .mmc_dcgan import MMCDCGenerator, MMCDCDiscriminator
+from .mmc_dcgan import MMCDCDiscriminator, MMCDCGenerator

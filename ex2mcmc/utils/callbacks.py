@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
+
 import numpy as np
 import torch
 from matplotlib import pyplot as plt

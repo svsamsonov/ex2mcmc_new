@@ -18,7 +18,10 @@ class RealNVPProposal(nn.Module):
         device = torch.device(device)
         super().__init__()
 
-        self.prior = MNormal(torch.zeros(dim, requires_grad=False).to(device), torch.eye(dim, requires_grad=False).to(device))
+        self.prior = MNormal(
+            torch.zeros(dim, requires_grad=False).to(device),
+            torch.eye(dim, requires_grad=False).to(device),
+        )
 
         masks = num_blocks * [
             [i % 2 for i in range(dim)],
@@ -54,13 +57,13 @@ class RealNVPProposal(nn.Module):
         )
 
         self.to(device)
-        self.init_params([p for n, p in self.named_parameters() if 'weight' in n])
+        self.init_params([p for n, p in self.named_parameters() if "weight" in n])
 
     def init_params(self, params):
         # torch.nn.init.xavier_uniform_(params, gain=nn.init.calculate_gain('relu')) #45
         for p in params:
             torch.nn.init.sparse_(p, sparsity=0.3, std=self.init_weight_scale)
-            #torch.nn.init.normal_(p, 0, self.init_weight_scale)
+            # torch.nn.init.normal_(p, 0, self.init_weight_scale)
 
     def inverse_flatten(self, z):
         log_det_J_inv, x = z.new_zeros(z.shape[0]), z
@@ -112,4 +115,3 @@ class RealNVPProposal(nn.Module):
         x, log_det_J_inv = self.inverse(z)
         # self.log_det_J_inv = log_det_J_inv
         return x
-    

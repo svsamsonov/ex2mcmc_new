@@ -1,5 +1,6 @@
 import numpy as np
 import pyro
+
 # Flows
 import torch
 import tqdm

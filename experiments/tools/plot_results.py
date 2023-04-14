@@ -95,7 +95,6 @@ def plot_res(log_path, config, arange):
         print("dgz failed")
 
     if Path(log_path, "weight_norm.txt").exists():
-
         weight_norms = np.loadtxt(Path(log_path, "weight_norm.txt")).reshape(
             -1, len(arange)
         )

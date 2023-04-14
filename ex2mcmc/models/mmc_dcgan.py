@@ -1,4 +1,5 @@
 from typing import Tuple
+
 from torch_mimicry.nets import dcgan
 
 from .base import BaseDiscriminator, BaseGenerator, ModelRegistry

@@ -13,17 +13,18 @@ import wandb
 from tqdm import trange
 
 from ex2mcmc.utils.general_utils import PROJECT_PATH
-import sys
+
+
 sys.path.append(PROJECT_PATH.as_posix())
-from experiments.tools.plot_results import plot_res
+from ex2mcmc.fid_sample import Sampler
 
 # from maxent_gan.datasets.utils import get_dataset
 from ex2mcmc.gan_distribution import Distribution, DistributionRegistry
+
 # from maxent_gan.feature import BaseFeature, create_feature
 from ex2mcmc.models.rnvp import RNVP  # noqa: F401
 from ex2mcmc.models.rnvp_minimal import RealNVPProposal
 from ex2mcmc.models.utils import GANWrapper
-from ex2mcmc.fid_sample import Sampler
 from ex2mcmc.utils.callbacks import CallbackRegistry
 from ex2mcmc.utils.general_utils import DotConfig, IgnoreLabelDataset, random_seed
 from ex2mcmc.utils.metrics.compute_fid_tf import calculate_fid_given_paths
@@ -33,6 +34,8 @@ from ex2mcmc.utils.metrics.inception_score import (
     STD_TRANSFORM,
     get_inception_score,
 )
+from experiments.tools.plot_results import plot_res
+
 
 FORMAT = "%(asctime)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.INFO)
@@ -45,7 +48,7 @@ def parse_arguments():
     parser.add_argument("--seed", type=int)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--step_size", type=float)
-    
+
     parser.add_argument("--suffix", type=str)
 
     args = parser.parse_args()
@@ -79,7 +82,7 @@ def define_sampler(
 
 def main(config: DotConfig, device: torch.device, group: str):
     suffix = f"_{config.suffix}" if config.suffix else ""
-    dir_suffix = "" #f"_{config.distribution.name}"
+    dir_suffix = ""  # f"_{config.distribution.name}"
 
     # sample
     if config.sample_params.sample:
@@ -103,9 +106,11 @@ def main(config: DotConfig, device: torch.device, group: str):
             Path(save_dir, "gan_config.yml").open("w"),
         )
         print(save_dir)
-        gan = GANWrapper(config.gan_config, device) #, eval=False)
+        gan = GANWrapper(config.gan_config, device)  # , eval=False)
         ref_dist = DistributionRegistry.create(
-            config.sample_params.distribution.name, gan=gan, batch_size=config.batch_size
+            config.sample_params.distribution.name,
+            gan=gan,
+            batch_size=config.batch_size,
         )
 
         if config.seed is not None:
@@ -137,7 +142,7 @@ def main(config: DotConfig, device: torch.device, group: str):
             labels = torch.LongTensor(
                 np.random.randint(
                     0,
-                    9, #dataset_info.get("n_classes", 10) - 1,
+                    9,  # dataset_info.get("n_classes", 10) - 1,
                     config.sample_params.total_n,
                 )
             )
@@ -157,7 +162,9 @@ def main(config: DotConfig, device: torch.device, group: str):
             #     run.config.update({"name": f"{group}_{i}"}, allow_val_change=True)
 
             if config.get("flow", None):
-                gan.gen.proposal = RealNVPProposal(gan.gen.z_dim, device=device, hidden=32, num_blocks=4)
+                gan.gen.proposal = RealNVPProposal(
+                    gan.gen.z_dim, device=device, hidden=32, num_blocks=4
+                )
                 if config.gan_config.dp:
                     gan.gen.proposal = torch.nn.DataParallel(gan.gen.proposal)
                     gan.gen.proposal.prior = gan.gen.prior
@@ -165,11 +172,11 @@ def main(config: DotConfig, device: torch.device, group: str):
                     gan.gen.proposal.sample = gan.gen.proposal.module.sample
                     gan.gen.proposal.inverse = gan.gen.proposal.module.inverse
 
-                opt = torch.optim.Adam(
-                    gan.gen.proposal.parameters(), 1e-3
-                )
+                opt = torch.optim.Adam(gan.gen.proposal.parameters(), 1e-3)
                 for _ in trange(1000):
-                    e = -gan.gen.proposal.log_prob(gan.gen.prior.sample((config.batch_size, ))).mean()
+                    e = -gan.gen.proposal.log_prob(
+                        gan.gen.prior.sample((config.batch_size,))
+                    ).mean()
                     gan.gen.proposal.zero_grad()
                     e.backward()
                     opt.step()
@@ -512,4 +519,3 @@ if __name__ == "__main__":
 
     group = args.group if args.group else f"{Path(args.configs[0]).stem}"
     main(config, device, group)
-    

@@ -49,7 +49,7 @@ def ula(
     verbose: bool = False,
     meta: Optional[Dict] = None,
     keep_graph: bool = False,
-    natural_grad: bool = False, #True,
+    natural_grad: bool = False,  # True,
     tikhonov_reg: float = 0.1,
 ) -> Tuple[torch.FloatTensor, Dict]:
     """
@@ -80,7 +80,9 @@ def ula(
             logp.sum(), point, create_graph=keep_graph, retain_graph=keep_graph
         )[0]
         if natural_grad:
-            step_size_ = step_size / (tikhonov_reg + torch.norm(grad, dim=-1)[:, None].detach())
+            step_size_ = step_size / (
+                tikhonov_reg + torch.norm(grad, dim=-1)[:, None].detach()
+            )
         else:
             step_size_ = step_size
 
@@ -142,7 +144,7 @@ def isir(
     n_particles: int,
     verbose: bool = False,
     meta: Optional[Dict] = None,
-    **kwargs
+    **kwargs,
 ) -> Tuple[torch.FloatTensor, Dict]:
     """
     Iterated Sampling Importance Resampling
@@ -243,17 +245,25 @@ def mala(
     point.grad = None
 
     device = point.device
-    proposal = torch.distributions.MultivariateNormal(torch.zeros(point.shape[-1], device=device), torch.eye(point.shape[-1], device=device))
+    proposal = torch.distributions.MultivariateNormal(
+        torch.zeros(point.shape[-1], device=device),
+        torch.eye(point.shape[-1], device=device),
+    )
 
     meta = meta or dict()
     meta["mh_accept"] = meta.get("mh_accept", [])
     meta["step_size"] = meta.get("step_size", [])
 
-    meta["logp"] = logp_x = target.log_prob(point) #meta.get("logp", target.log_prob(point))
+    meta["logp"] = logp_x = target.log_prob(
+        point
+    )  # meta.get("logp", target.log_prob(point))
     if "grad" not in meta:
         if keep_graph:
             grad_x = torch.autograd.grad(
-                meta["logp"].sum(), point, create_graph=keep_graph, retain_graph=keep_graph
+                meta["logp"].sum(),
+                point,
+                create_graph=keep_graph,
+                retain_graph=keep_graph,
             )[0]
         else:
             grad_x = torch.autograd.grad(logp_x.sum(), point)[0].detach()
@@ -369,7 +379,9 @@ def ex2mcmc(
         meta["sir_accept"].append((indices != 0).float().mean().item())
         point = point.detach().requires_grad_()
         meta["logp"] = logp_x
-        meta["mask"] = F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+        meta["mask"] = (
+            F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+        )
 
         points, meta = mala(
             points[-1],
@@ -497,10 +509,10 @@ def flex2mcmc(
 
     # hist_proposals = None
 
-    meta["logp"] = target.log_prob(point) #meta.get("logp", target.log_prob(point))
+    meta["logp"] = target.log_prob(point)  # meta.get("logp", target.log_prob(point))
 
     pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
-    for step_id in pbar: 
+    for step_id in pbar:
         logp_x = meta["logp"]
         logq_x = proposal.log_prob(point)
 
@@ -517,7 +529,9 @@ def flex2mcmc(
         meta["sir_accept"].append((indices != 0).float().mean().item())
         point = point.detach().requires_grad_()
         meta["logp"] = logp_x
-        meta["mask"] = F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+        meta["mask"] = (
+            F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+        )
         if n_mala_steps > 0:
             points, meta = mala(
                 point,
@@ -538,21 +552,25 @@ def flex2mcmc(
 
         meta.pop("logp")
         meta.pop("grad")
-        
+
         if not keep_graph:
             point = point.detach().requires_grad_()
         if step_id >= burn_in:
             chains.append(point)
 
         if proposal.optim.param_groups[0]["lr"] > 0:
-            logw = log_ps - log_qs      
-            kl_forw = -(log_qs * torch.softmax(logw.detach(), dim=-1)).sum(axis=-1).mean()
+            logw = log_ps - log_qs
+            kl_forw = (
+                -(log_qs * torch.softmax(logw.detach(), dim=-1)).sum(axis=-1).mean()
+            )
             kl_back = -(log_ps[:, 1:] - log_qs[:, 1:]).mean()
 
-            loss = forward_kl_weight * kl_forw + backward_kl_weight * kl_back #+ entr_weight * entr
+            loss = (
+                forward_kl_weight * kl_forw + backward_kl_weight * kl_back
+            )  # + entr_weight * entr
             proposal.zero_grad()
             loss.backward()
-            #torch.nn.utils.clip_grad_norm_(proposal.parameters(), 10.0)
+            # torch.nn.utils.clip_grad_norm_(proposal.parameters(), 10.0)
             proposal.optim.step()
             proposal.scheduler.step()
 
@@ -562,11 +580,11 @@ def flex2mcmc(
             if verbose:
                 pbar.set_description(
                     f"KL forw {kl_forw.item():.3f}, \
-                    KL back {kl_back.item():.3f} " #Hentr {entr.item():.3f}"
+                    KL back {kl_back.item():.3f} "  # Hentr {entr.item():.3f}"
                 )
             print(
                 f"KL forw {kl_forw.item():.3f}, \
-                    KL back {kl_back.item():.3f} " #Hentr {entr.item():.3f}"
+                    KL back {kl_back.item():.3f} "  # Hentr {entr.item():.3f}"
             )
 
     chains = torch.stack(chains, 0)

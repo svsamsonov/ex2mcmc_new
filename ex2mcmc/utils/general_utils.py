@@ -1,14 +1,14 @@
 import random
 import time
-from pathlib import Path
 from collections.abc import Mapping
+from pathlib import Path
 
 import numpy as np
 import torch
 
 
 PROJECT_PATH = Path(__file__).parent.parent.parent
-CHECKPOINT_DIR = Path(PROJECT_PATH, 'checkpoints')
+CHECKPOINT_DIR = Path(PROJECT_PATH, "checkpoints")
 
 
 def random_seed(seed):
@@ -21,7 +21,7 @@ def random_seed(seed):
 
 
 def seed_worker(worker_id):
-    worker_seed = torch.initial_seed() % 2 ** 32
+    worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 

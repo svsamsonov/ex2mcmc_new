@@ -1,18 +1,19 @@
-from pathlib import Path
 import gc
 import pickle
 import time
+from argparse import ArgumentParser
+from pathlib import Path
+
 import jax
 import numpy as np
 import ot
 import pyro
 import torch
 from pyro.infer import MCMC, NUTS
-from argparse import ArgumentParser
 
-from ex2mcmc.sampling_utils.adaptive_mc import Ex2MCMC, FlowMCMC
-from ex2mcmc.sampling_utils.distributions import Funnel, Banana, IndependentNormal
 from ex2mcmc.models.rnvp import RNVP
+from ex2mcmc.sampling_utils.adaptive_mc import Ex2MCMC, FlowMCMC
+from ex2mcmc.sampling_utils.distributions import Banana, Funnel, IndependentNormal
 from ex2mcmc.sampling_utils.metrics import ESS, acl_spectrum
 from ex2mcmc.sampling_utils.total_variation import average_total_variation
 
@@ -109,8 +110,17 @@ def compute_metrics(
     return metrics
 
 
-def main(target_distributions, True_samples, sterp_sizes, scale_proposal, scale_isir, num_replications, log_dir, mala_steps=1, device="cpu"):
-
+def main(
+    target_distributions,
+    True_samples,
+    sterp_sizes,
+    scale_proposal,
+    scale_isir,
+    num_replications,
+    log_dir,
+    mala_steps=1,
+    device="cpu",
+):
     res_nuts = {"time": [], "ess": [], "emd": [], "tv": []}
     res_ex2 = {"time": [], "ess": [], "emd": [], "tv": []}
     res_mala = {"time": [], "ess": [], "emd": [], "tv": []}
@@ -118,7 +128,9 @@ def main(target_distributions, True_samples, sterp_sizes, scale_proposal, scale_
     res_flex = {"time": [], "ess": [], "emd": [], "tv": []}
 
     for i in range(num_replications):
-        for target, true_samples, step_size in zip(target_distributions, true_samples, sterp_sizes):
+        for target, true_samples, step_size in zip(
+            target_distributions, true_samples, sterp_sizes
+        ):
             loc_proposal = torch.zeros(target.dim).to(device)
             scale_proposal = scale_proposal * torch.ones(target.dim).to(device)
             scale_isir = scale_isir * torch.ones(target.dim).to(device)
@@ -136,7 +148,7 @@ def main(target_distributions, True_samples, sterp_sizes, scale_proposal, scale_
                 device=device,
             )
             # generate ground-truth samples
-            
+
             # sample NUTS
             # samples to compute ground-truth metrics
             Nuts_samples_ground_truth = 2000
@@ -324,7 +336,9 @@ def main(target_distributions, True_samples, sterp_sizes, scale_proposal, scale_
             ).reshape(-1, batch_size, dim)
             sample_flex2_new = sample
             end_flex_time = time.time()
-            res_flex["time"].append(end_train_time - start_time + end_flex_time - end_time)
+            res_flex["time"].append(
+                end_train_time - start_time + end_flex_time - end_time
+            )
             metrics = compute_metrics(
                 True_samples,
                 sample_flex2_new,
@@ -338,46 +352,46 @@ def main(target_distributions, True_samples, sterp_sizes, scale_proposal, scale_
             del mcmc.flow
             gc.collect()
             torch.cuda.empty_cache()
-            with Path(log_dir, "res_nuts.pickle").open('wb') as handle:
+            with Path(log_dir, "res_nuts.pickle").open("wb") as handle:
                 pickle.dump(res_nuts, handle)
-            with Path(log_dir, "res_mala.pickle").open('wb') as handle:
+            with Path(log_dir, "res_mala.pickle").open("wb") as handle:
                 pickle.dump(res_mala, handle)
-            with Path(log_dir, "res_ex2.pickle").open('wb') as handle:
+            with Path(log_dir, "res_ex2.pickle").open("wb") as handle:
                 pickle.dump(res_ex2, handle)
-            with Path(log_dir, "res_adaptive_isir.pickle").open('wb') as handle:
+            with Path(log_dir, "res_adaptive_isir.pickle").open("wb") as handle:
                 pickle.dump(res_adaptive_isir, handle)
-            with Path(log_dir, "res_flex.pickle").open('wb') as handle:
+            with Path(log_dir, "res_flex.pickle").open("wb") as handle:
                 pickle.dump(res_flex, handle)
 
 
 def parse_arguments():
     parser = ArgumentParser()
-    parser.add_argument('--distribution', type=str, choices=['banana', 'funnel'])
-    parser.add_argument('--device', type=str, default='cpu')
-    parser.add_argument('--log_dir', type=str, default='log')
-    
+    parser.add_argument("--distribution", type=str, choices=["banana", "funnel"])
+    parser.add_argument("--device", type=str, default="cpu")
+    parser.add_argument("--log_dir", type=str, default="log")
+
     args = parser.parse_args()
     return args
 
 
 if __name__ == "__main__":
     args = parse_arguments()
-    
+
     log_dir = Path(args.log_dir, args.distribution)
     log_dir.mkdir(exist_ok=True, parents=True)
-    
+
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     np.random.seed(42)
-    
+
     target_distributions = []
     step_sizes = []
     true_samples = []
-            
-    if args.distribution == 'banana':
+
+    if args.distribution == "banana":
         dims = [20, 40, 60, 80, 100]
         step_size = [0.2, 0.1, 5e-2, 5e-2, 5e-2]
         num_replications = 20
-        
+
         scale_proposal = 1.0
         scale_isir = 5.0
         dist_params = {
@@ -386,7 +400,7 @@ if __name__ == "__main__":
         }
         sigma = 5.0
         b = 0.02
-            
+
         for dim in dims:
             target = Banana(
                 dim=dim,
@@ -395,31 +409,33 @@ if __name__ == "__main__":
                 sigma=sigma,
             )
             target_distributions.append(target)
-        
+
         N_samples = 5 * 10**3
-        
+
         for dim in dims:
             True_samples = np.random.randn(N_samples, dim)
             for k in range(dim):
                 if k % 2 == 0:
                     True_samples[:, k] *= sigma
                 else:
-                    True_samples[:, k] += b * True_samples[:, k - 1] ** 2 - (sigma**2) * b
+                    True_samples[:, k] += (
+                        b * True_samples[:, k - 1] ** 2 - (sigma**2) * b
+                    )
             true_samples.append(True_samples)
-            
+
         mala_steps = 5
-        
-    elif args.distribution == 'funnel':
+
+    elif args.distribution == "funnel":
         dims = [10, 20, 50, 100, 200]
         step_size = [0.2, 0.1, 5e-2, 5e-2, 5e-2]
         num_replications = 50
-        
+
         scale_proposal = 1.0
         scale_isir = 3.0
         dist_class = "Funnel"
         a = 2.0
         b = 0.5
-        
+
         for dim in dims:
             target = Funnel(
                 dim=dim,
@@ -429,21 +445,28 @@ if __name__ == "__main__":
                 # **dist_params.dict,
             )
             target_distributions.append(target)
-            
+
         N_samples = 5 * 10**3
-        
+
         for dim in dims:
             True_samples = np.random.randn(N_samples, dim)
             True_samples[:, 0] *= a
             for k in range(1, dim):
                 True_samples[:, k] *= np.exp(True_samples[:, 0] / 2)
-                
+
             true_samples.append(True_samples)
-        
+
         mala_steps = 3
-        
+
     else:
         raise KeyError
-    
-    main(target_distributions, scale_proposal, scale_isir, num_replications, true_samples, log_dir, mala_steps)
-    
+
+    main(
+        target_distributions,
+        scale_proposal,
+        scale_isir,
+        num_replications,
+        true_samples,
+        log_dir,
+        mala_steps,
+    )
