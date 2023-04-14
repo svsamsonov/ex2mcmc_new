@@ -101,3 +101,4 @@ venv.bak/
 **.pkl
 
 /code_submission
+/log

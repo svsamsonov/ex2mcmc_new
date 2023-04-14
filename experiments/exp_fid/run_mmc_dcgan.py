@@ -15,7 +15,7 @@ from tqdm import trange
 from ex2mcmc.utils.general_utils import PROJECT_PATH
 import sys
 sys.path.append(PROJECT_PATH.as_posix())
-from tools.plot_results import plot_res
+from experiments.tools.plot_results import plot_res
 
 # from maxent_gan.datasets.utils import get_dataset
 from ex2mcmc.gan_distribution import Distribution, DistributionRegistry
@@ -79,16 +79,7 @@ def define_sampler(
 
 def main(config: DotConfig, device: torch.device, group: str):
     suffix = f"_{config.suffix}" if config.suffix else ""
-    dir_suffix = f"_{config.distribution.name}"
-
-    # dataset_info = get_dataset(
-    #     config.gan_config.dataset.name,
-    #     mean=config.gan_config.train_transform.Normalize.mean,
-    #     std=config.gan_config.train_transform.Normalize.std,
-    #     **config.gan_config.dataset.params,
-    # )
-    # dataset = dataset_info["dataset"]
-    # dataloader = DataLoader(dataset, batch_size=config.data_batch_size)
+    dir_suffix = "" #f"_{config.distribution.name}"
 
     # sample
     if config.sample_params.sample:
@@ -521,3 +512,4 @@ if __name__ == "__main__":
 
     group = args.group if args.group else f"{Path(args.configs[0]).stem}"
     main(config, device, group)
+    

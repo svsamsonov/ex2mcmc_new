@@ -43,11 +43,11 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 **Ex2MCMC:**
 
-<img src="./algs/ex2.png" alt="Ex2MCMC" width="600"/>
+<img src="./imgs/ex2.png" alt="Ex2MCMC" width="600"/>
 
 **FlEx2MCMC:**
 
-<img src="./algs/flex.png" alt="FlEx2MCMC" width="600"/>
+<img src="./imgs/flex.png" alt="FlEx2MCMC" width="600"/>
 
 ## Installation
 
@@ -106,33 +106,33 @@ gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz
   
 | Experiment | Path | Colab |
 |:----------|:-------|:-----:|
-| Toyish Gaussian   |     ```exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
-| Gaussian mixture  |     ```exp_synthetic/gaussian_mixture.ipynb``` | [TBD]() |
-| FlEx for banana-shaped distribution   |     ```exp_synthetic/flex_banana.ipynb``` | [TBD]() |
-| FlEx for Neal's funnel distribution   |     ```exp_synthetic/flex_funnel.ipynb``` | [TBD]() |
+| Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
+| Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [TBD]() |
+| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [TBD]() |
+| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [TBD]() |
 
 To reproduce the experimets on banana-shaped and funnel distributions:
 
 ```bash
-python exp_synthetic/banana_funnel_metrics.py --distribution {banana,funnel} --device cuda:0
+python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana,funnel} --device cuda:0
 ```
 
  ### Experiments with GANs on MNIST dataset
  
- ```mnist_experiments/JSGAN_samples.ipynb```
+ ```experiments/exp_mnist/JSGAN_samples.ipynb```
 
- ```mnist_experiments/WGAN_samples.ipynb```
+ ```experiments/exp_mnist/WGAN_samples.ipynb```
 
  ### Experiments with GANs on CIFAR10 dataset
 
-```cifar10_experiments/DCGAN_samples.ipynb```
+```experiments/exp_cifar10/DCGAN_samples.ipynb```
 
-```cifar10_experiments/SNGAN_samples.ipynb```
+```experiments/exp_cifar10/SNGAN_samples.ipynb```
 
 ### Sampling and FID computation
 
 ```bash
-python exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
+python experiments/exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
 ```
 
 ## Results
