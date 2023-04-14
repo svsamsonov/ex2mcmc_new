@@ -18,7 +18,7 @@ This repository contains Python code to reproduce experiments from [**Local-Glob
 
 
 
-<img src="./imgs/fid_flex.png" alt="FID" width="300"/> <img src="./imgs/is_flex.png" alt="Inception Score" width="310"/> <img src="./imgs/energy_flex.png" alt="Energy" width="320"/> 
+<img src="./imgs/fid_flex.png" alt="FID" width="250"/> <img src="./imgs/is_flex.png" alt="Inception Score" width="260"/> <img src="./imgs/energy_flex.png" alt="Energy" width="270"/> 
 
 
 ## Algorithms 
