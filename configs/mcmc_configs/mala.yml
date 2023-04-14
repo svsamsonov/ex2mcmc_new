@@ -1,0 +1,6 @@
+sampling: &sampling mala
+mcmc_args: &mcmc_args 
+  target_acceptance: 0.67
+  n_samples: 3
+  burn_in: 2
+# target_call_per_step: 2

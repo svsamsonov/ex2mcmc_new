@@ -1,0 +1,1 @@
+from ex2mcmc.models.base import ModelRegistry

@@ -1,0 +1,5 @@
+sampling: &sampling isir
+mcmc_args: &mcmc_args 
+  n_particles: 10
+  n_samples: 1
+  burn_in: 0

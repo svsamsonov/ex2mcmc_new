@@ -10,6 +10,7 @@ This repository contains Python code to reproduce experiments from [**Local-Glob
     - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
     - [Experiments with GANs on MNIST dataset](#experiments-with-gans-on-mnist-dataset)
     - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
+    - [Experiments with GANs on CIFAR10 and FID computation](#experiments-with-gans-on-cifar10-and-fid-computation)
   - [Results](#results)
   - [Citation](#citation)
 
@@ -17,9 +18,9 @@ This repository contains Python code to reproduce experiments from [**Local-Glob
 
 
 ## Algorithms 
-**i-SIR:**
+<!-- **i-SIR:**
 
-<img src="./algs/isir.png" alt="i-SIR" width="600"/>
+<img src="./algs/isir.png" alt="i-SIR" width="600"/> -->
 
 **Ex2MCMC:**
 
@@ -67,10 +68,15 @@ MNIST:
 
 You also can run script to download checkpoints:
 
-
 ```bash
 chmod +x get_ckpts.sh
 ./get_ckpts.sh
+```
+
+Download statistics for FID cimputation for CIFAR10 dataset:
+
+```bash
+gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz
 ```
 
 <!-- | WGAN GP   | --        |   [TBD]() |   [TBD]() | -->
@@ -90,13 +96,33 @@ chmod +x get_ckpts.sh
 
  ### Experiments with GANs on MNIST dataset
  
- ```mnist_experiments```
+ ```mnist_experiments/JSGAN_samples.ipynb```
+
+ ```mnist_experiments/WGAN_samples.ipynb```
 
  ### Experiments with GANs on CIFAR10 dataset
 
-```cifar10_experiments```
+```cifar10_experiments/DCGAN_samples.ipynb```
+
+```cifar10_experiments/SNGAN_samples.ipynb```
+
+### Experiments with GANs on CIFAR10 and FID computation
+
+```bash
+python run.py configs/mcmc_configs/{ula/mala/isir/ex2mcmc/flex2mcmc}.yml configs/mmc_dcgan.yml
+```
 
 ## Results
+
+| GAN | MCMC | steps | Inception Score | FID  |
+|:----|:-----|:------|:---------------:|:----:|
+|DCGAN| none | 0     |                 |      |
+|DCGAN| ULA  | 1k     |                 |      |
+|DCGAN| ISIR  | 1k     |                 |      |
+|DCGAN| MALA  | 1k     |                 |      |
+|DCGAN| Ex2MCMC  | 1k   |                 |      |
+|DCGAN| FlEx2MCMC  | 1k |                 |      |
+
 
 ## Citation
 

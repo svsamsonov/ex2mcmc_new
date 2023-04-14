@@ -1,0 +1,19 @@
+sampling: &sampling flex2mcmc
+mcmc_args: &mcmc_args
+  n_particles: 10
+  target_acceptance: 0.67
+  forward_kl_weight: 0.6
+  backward_kl_weight: 0.4
+  entr_weight: 0.0
+  n_samples: 1
+  burn_in: 0
+  n_mala_steps: 3
+flow:
+  name: RNVP
+  params:
+    num_flows: 5
+    dim: null
+  opt_params:
+    lr: 0.001 #003
+    # betas: [0.9, 0.5]
+  train_iters: 100
