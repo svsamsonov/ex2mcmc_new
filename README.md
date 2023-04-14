@@ -4,7 +4,7 @@
 
 Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey Naumov, Eric Moulines.
 
-> **Abstract:** *In the present paper we study an Explore-Exploit Markov chain Monte Carlo strategy (Ex2MCMC) that combines local and global samplers showing that it enjoys the advantages of both approaches. We prove V-uniform geometric ergodicity of Ex2MCMC without requiring a uniform adaptation of the global sampler to the target distribution. We also compute explicit bounds on the mixing rate of the Explore-Exploit strategy under realistic conditions. Moreover, we also analyze an adaptive version of the strategy (FlEx2MCMC) where a normalizing flow is trained while sampling to serve as a proposal for global moves. We illustrate the efficiency of Ex2MCMC and its adaptive version on classical sampling benchmarks as well as in sampling high-dimensional distributions defined by Generative Adversarial Networks seen as Energy Based Models.*
+> **Abstract:** *In the present paper we study an Explore-Exploit Markov chain Monte Carlo strategy (Ex<sup>2</sup>MCMC) that combines local and global samplers showing that it enjoys the advantages of both approaches. We prove V-uniform geometric ergodicity of Ex<sup>2</sup>MCMC without requiring a uniform adaptation of the global sampler to the target distribution. We also compute explicit bounds on the mixing rate of the Explore-Exploit strategy under realistic conditions. Moreover, we also analyze an adaptive version of the strategy (FlEx<sup>2</sup>MCMC) where a normalizing flow is trained while sampling to serve as a proposal for global moves. We illustrate the efficiency of Ex<sup>2</sup>MCMC and its adaptive version on classical sampling benchmarks as well as in sampling high-dimensional distributions defined by Generative Adversarial Networks seen as Energy Based Models.*
 > 
 <!-- This repository contains Python code to reproduce experiments from [**Local-Global MCMC kernels: the bost of both worlds**](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html) (NeurIPS'22). -->
 
@@ -41,13 +41,13 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 <img src="./algs/isir.png" alt="i-SIR" width="600"/> -->
 
-**Ex2MCMC:**
+**Ex<sup>2</sup>MCMC:**
 
-<img src="./imgs/ex2.png" alt="Ex2MCMC" width="600"/>
+<img src="./imgs/ex2.png" alt="Ex<sup>2</sup>MCMC" width="600"/>
 
-**FlEx2MCMC:**
+**FlEx<sup>2</sup>MCMC:**
 
-<img src="./imgs/flex.png" alt="FlEx2MCMC" width="600"/>
+<img src="./imgs/flex.png" alt="FlEx<sup>2</sup>MCMC" width="600"/>
 
 ## Installation
 
@@ -132,23 +132,24 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 ### Sampling and FID computation
 
 ```bash
-python experiments/exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
+python experiments/exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,Ex<sup>2</sup>mcmc,flEx<sup>2</sup>mcmc}.yml configs/mmc_dcgan.yml
 ```
 
 ## Results
 
 ### FID and Inception Score (CIFAR10)
-| GAN | MCMC | steps | Inception Score | FID  |
-|:----|:-----|:------|:---------------:|:----:|
-|DCGAN| none | 0     |                 |      |
-|DCGAN| i-SIR  | 1k     |              |      |
-|DCGAN| MALA  | 1k      |               |      |
-|DCGAN| Ex2MCMC  | 1k   |              |      |
-|DCGAN| FlEx2MCMC  | 1k |              |      |
+| GAN | MCMC | Steps | Inception Score | FID  |
+|:----|:-----|:------:|:---------------:|:----:|
+|DCGAN| none | 0     |       6.3          |  28.4    |
+|DCGAN| i-SIR  | 1k     |    6.96          |  22.7    |
+|DCGAN| MALA  | 1k      |    6.95           |   23.4   |
+|DCGAN| Ex<sup>2</sup>MCMC (our)  | 1k   |    <ins>7.56<ins>          |   <ins>19.0<ins>   |
+|DCGAN| FlEx<sup>2</sup>MCMC (our)  | 1k |    **7.92**          |  19.2    |
+|DCGAN| FlEx<sup>2</sup>MCMC (our) | 180 |   7.62      |  **17.1**    |
 
 
 ### Sampling trajectories (CIFAR10)
-Generation trajectories for DCGAN, top to bottom: i-SIR, MALA, Ex2MCMC, FlEx2MCMC:
+Generation trajectories for DCGAN, top to bottom: i-SIR, MALA, Ex<sup>2</sup>MCMC, FlEx<sup>2</sup>MCMC:
 
 <img src="./imgs/cifar10_dcgan_gen.png" alt="CIFAR10 generations" width="600"/> 
 
