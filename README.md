@@ -17,6 +17,10 @@ This repository contains Python code to reproduce experiments from [**Local-Glob
 <img src="./imgs/gaussian_mixture.png" alt="i-SIR" width="900"/>
 
 
+
+<img src="./imgs/fid_flex.png" alt="FID" width="300"/> <img src="./imgs/is_flex.png" alt="Inception Score" width="310"/> <img src="./imgs/energy_flex.png" alt="Energy" width="320"/> 
+
+
 ## Algorithms 
 <!-- **i-SIR:**
 
@@ -117,12 +121,15 @@ python run.py configs/mcmc_configs/{ula/mala/isir/ex2mcmc/flex2mcmc}.yml configs
 | GAN | MCMC | steps | Inception Score | FID  |
 |:----|:-----|:------|:---------------:|:----:|
 |DCGAN| none | 0     |                 |      |
-|DCGAN| ULA  | 1k     |                 |      |
-|DCGAN| ISIR  | 1k     |                 |      |
+|DCGAN| i-SIR  | 1k     |                 |      |
 |DCGAN| MALA  | 1k     |                 |      |
 |DCGAN| Ex2MCMC  | 1k   |                 |      |
 |DCGAN| FlEx2MCMC  | 1k |                 |      |
 
+
+Generation trajectories for DCGAN, top to bottom: i-SIR, MALA, Ex2MCMC, FlEx2MCMC:
+
+<img src="./imgs/cifar10_dcgan_gen.png" alt="CIFAR10 generations" width="600"/> 
 
 ## Citation
 
