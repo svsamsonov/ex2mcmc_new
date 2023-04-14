@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "ex2mcmc"
 version = "0.0.2"
-description = ""
-authors = []
+description = "Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022)"
+authors = ["Sergey Samsonov", "Evgeny Lagutin", "Marylou Gabrié", "Alain Durmus", "Alexey Naumov", "Eric Moulines"]
 readme = "README.md"
-repository = "http://github.com/svsamsonov/... .git"
+repository = "http://github.com/svsamsonov/ex2mcmc_new.git"
 documentation = "TBD"
 
 [tool.black]
