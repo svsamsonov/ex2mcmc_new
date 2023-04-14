@@ -20,6 +20,9 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
     - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
     - [Sampling and FID computation](#sampling-and-fid-computation)
   - [Results](#results)
+    - [FID and Inception Score (CIFAR10)](#fid-and-inception-score-cifar10)
+    - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
+    - [Energy landscape approximation (MNIST)](#energy-landscape-approximation-mnist)
   - [Citation](#citation)
 
 ## Single chain mixing
@@ -129,23 +132,32 @@ python exp_synthetic/banana_funnel_metrics.py --distribution {banana,funnel} --d
 ### Sampling and FID computation
 
 ```bash
-python run.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
+python exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
 ```
 
 ## Results
 
+### FID and Inception Score (CIFAR10)
 | GAN | MCMC | steps | Inception Score | FID  |
 |:----|:-----|:------|:---------------:|:----:|
 |DCGAN| none | 0     |                 |      |
-|DCGAN| i-SIR  | 1k     |                 |      |
-|DCGAN| MALA  | 1k     |                 |      |
-|DCGAN| Ex2MCMC  | 1k   |                 |      |
-|DCGAN| FlEx2MCMC  | 1k |                 |      |
+|DCGAN| i-SIR  | 1k     |              |      |
+|DCGAN| MALA  | 1k      |               |      |
+|DCGAN| Ex2MCMC  | 1k   |              |      |
+|DCGAN| FlEx2MCMC  | 1k |              |      |
 
 
+### Sampling trajectories (CIFAR10)
 Generation trajectories for DCGAN, top to bottom: i-SIR, MALA, Ex2MCMC, FlEx2MCMC:
 
 <img src="./imgs/cifar10_dcgan_gen.png" alt="CIFAR10 generations" width="600"/> 
+
+
+### Energy landscape approximation (MNIST)
+
+Projection of GAN samples onto the energy landsape when trained on MNIST dataset:
+
+<img src="./imgs/energy_landscape.png" alt="energy landscape" width="600"/> 
 
 ## Citation
 

@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from tqdm import trange
 
-from ex2mcmc.utils.general_utils import ROOT_DIR, DotConfig
+from ex2mcmc.utils.general_utils import PROJECT_PATH, DotConfig
 
 from .base import MemoryModel, ModelRegistry
 
@@ -94,9 +94,9 @@ class GANWrapper:
         self.label = None
 
     def load_weights(self):
-        gen_path = Path(ROOT_DIR, self.config.generator.ckpt_path)
-        if not gen_path.exists():
-            subprocess.run(["dvc pull", gen_path.parent])
+        gen_path = Path(PROJECT_PATH, self.config.generator.ckpt_path)
+        # if not gen_path.exists():
+        #     subprocess.run(["dvc pull", gen_path.parent])
 
         state_dict = torch.load(gen_path, map_location=self.device)
         try:
@@ -105,9 +105,9 @@ class GANWrapper:
             state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
             self.gen.load_state_dict(state_dict, strict=True)
 
-        dis_path = Path(ROOT_DIR, self.config.discriminator.ckpt_path)
-        if not dis_path.exists():
-            subprocess.run(["dvc pull", dis_path.parent])
+        dis_path = Path(PROJECT_PATH, self.config.discriminator.ckpt_path)
+        # if not dis_path.exists():
+        #     subprocess.run(["dvc pull", dis_path.parent])
         state_dict = torch.load(
             dis_path,
             map_location=self.device,

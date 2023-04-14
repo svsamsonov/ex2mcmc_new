@@ -10,9 +10,12 @@ import ruamel.yaml as yaml
 import torch
 import torchvision
 import wandb
-from ..tools.plot_results import plot_res
-from torch.utils.data import DataLoader
 from tqdm import trange
+
+from ex2mcmc.utils.general_utils import PROJECT_PATH
+import sys
+sys.path.append(PROJECT_PATH.as_posix())
+from tools.plot_results import plot_res
 
 # from maxent_gan.datasets.utils import get_dataset
 from ex2mcmc.gan_distribution import Distribution, DistributionRegistry
@@ -30,13 +33,6 @@ from ex2mcmc.utils.metrics.inception_score import (
     STD_TRANSFORM,
     get_inception_score,
 )
-
-
-# sys.path.append("studiogan")  # noqa: E402
-# from maxent_gan.models.studiogans import (  # noqa: F401, E402  isort: skip
-#     StudioDis,  # noqa: F401, E402  isort: skip
-#     StudioGen,  # noqa: F401, E402  isort: skip
-# )
 
 FORMAT = "%(asctime)s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.INFO)
@@ -150,7 +146,7 @@ def main(config: DotConfig, device: torch.device, group: str):
             labels = torch.LongTensor(
                 np.random.randint(
                     0,
-                    dataset_info.get("n_classes", 10) - 1,
+                    9, #dataset_info.get("n_classes", 10) - 1,
                     config.sample_params.total_n,
                 )
             )
@@ -346,8 +342,8 @@ def main(config: DotConfig, device: torch.device, group: str):
                 params["np_dataset"] = np_dataset
             if "save_dir" in params:
                 params["save_dir"] = results_dir
-            if "modes" in params:
-                params["modes"] = dataset_info["modes"]
+            # if "modes" in params:
+            #     params["modes"] = dataset_info["modes"]
 
             afterall_callbacks.append(CallbackRegistry.create(callback.name, **params))
 
@@ -493,25 +489,26 @@ def reset_anchors(args: argparse.Namespace, params: yaml.YAMLObject):
 if __name__ == "__main__":
     args = parse_arguments()
     print(args.configs)
-    params = yaml.round_trip_load(Path(args.configs[0]).open("r"))
-    reset_anchors(args, params)
-    print(yaml.round_trip_dump(params))
+    # params = yaml.round_trip_load(Path(args.configs[0]).open("r"))
+    # reset_anchors(args, params)
+    # print(yaml.round_trip_dump(params))
 
     proc = subprocess.Popen("/bin/bash", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = proc.communicate(
         (
             " ".join(
                 [
-                    "echo",
-                    '"' + str(yaml.round_trip_dump(params)) + '"',
-                    "|",
+                    # "echo",
+                    # # '"' + str(yaml.round_trip_dump(params)) + '"',
+                    # # "|",
                     "cat - ",
-                    *args.configs[1:],
+                    *args.configs,
                 ]
             )
         ).encode("utf-8")
     )
     config = yaml.round_trip_load(out.decode("utf-8"))
+    print(yaml.round_trip_dump(config))
     config = DotConfig(config)
 
     if args.seed is not None:

@@ -48,6 +48,7 @@ statsmodels = "^0.13.5"
 jaxlib = "^0.4.7"
 jax = "^0.4.8"
 gdown = "^4.7.1"
+wandb = "^0.14.2"
 
 [tool.isort]
 src_paths = ["."]

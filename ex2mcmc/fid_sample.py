@@ -2,12 +2,11 @@ import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import torch
-from scipy.optimize import minimize  # noqa: F401
 from torch import nn
 from torch.distributions import Distribution as torchDist
 from tqdm import trange
 
-from ..ex2mcmc.gan_distribution import Distribution, DiscriminatorTarget
+from .gan_distribution import Distribution, DiscriminatorTarget
 from .fid_samplers import MCMCRegistry
 from .utils import time_comp_cls
 from .utils.callbacks import Callback
@@ -97,7 +96,7 @@ class Sampler:
         self,
         z: torch.Tensor,
         n_steps: Optional[int] = None,
-        data_batch: Optional[torch.FloatTensor] = None,
+        #data_batch: Optional[torch.FloatTensor] = None,
         collect_imgs: bool = False,
         keep_graph: bool = False,
     ) -> Tuple[List, List, List, List]:
@@ -114,7 +113,7 @@ class Sampler:
 
         it = 0
         for it in self.trange(1, n_steps + 1):
-            new_z, meta = self.step(z, it, data_batch, meta=meta, keep_graph=keep_graph)
+            new_z, meta = self.step(z, it, meta=meta, keep_graph=keep_graph)
             if it > self.start_sample:
                 z = new_z
 
