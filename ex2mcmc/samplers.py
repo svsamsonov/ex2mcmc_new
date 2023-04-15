@@ -1,13 +1,9 @@
 import numpy as np
-import pyro
-
-# Flows
 import torch
 import tqdm
-from pyro.infer import HMC, MCMC, NUTS
-from torch import distributions, nn
+from pyro.infer import MCMC, NUTS
+from torch import nn
 from torch.distributions import Categorical, MultivariateNormal
-from torch.nn.parameter import Parameter
 
 
 class RealNVPProposal(nn.Module):
@@ -107,9 +103,8 @@ class RealNVPProposal(nn.Module):
 
 # Samplers
 
+
 # NUTS
-
-
 def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size=100):
     def true_target_energy(z):
         return target(z)
@@ -142,8 +137,6 @@ def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size=1
 
 
 # MALA
-
-
 def grad_log_and_output_target_dens(log_target_dens, z):
     """
     returns the gradient of log-density
@@ -232,8 +225,6 @@ def mala(log_target_dens, x0, N_steps, gamma, mala_iters, stats=None, seed=42):
 
 
 # I-SIR
-
-
 def i_sir_step(log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=False):
     """
     function to sample with N-particles version of i-SIR
@@ -330,8 +321,6 @@ def i_sir(log_target_dens, x0, N_steps, N_part, isir_proposal, seed=42):
 
 
 # Ex2MCMC
-
-
 def ex2_mcmc(
     log_target_dens,
     x0,

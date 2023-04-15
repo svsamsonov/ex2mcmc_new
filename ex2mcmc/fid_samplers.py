@@ -357,6 +357,7 @@ def ex2mcmc(
     meta["step_size"] = meta.get("step_size", [])
 
     pbar = trange if verbose else range
+    meta["logp"] = meta.get("logp", target.log_prob(point))
     for step_id in pbar(n_samples + burn_in):
         # points, meta = isir(
         #     point, target, proposal, 1, 0, project, n_particles=n_particles, meta=meta
@@ -384,7 +385,7 @@ def ex2mcmc(
         )
 
         points, meta = mala(
-            points[-1],
+            point,  # s[-1],
             target,
             proposal,
             n_mala_steps,

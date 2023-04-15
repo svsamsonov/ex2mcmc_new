@@ -9,6 +9,8 @@ import torch
 
 PROJECT_PATH = Path(__file__).parent.parent.parent
 CHECKPOINT_DIR = Path(PROJECT_PATH, "checkpoints")
+LOG_DIR = Path(PROJECT_PATH, "log")
+IMGS_DIR = Path(PROJECT_PATH, "imgs")
 
 
 def random_seed(seed):

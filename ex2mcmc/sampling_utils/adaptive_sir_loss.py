@@ -1,11 +1,7 @@
-import gc
 from re import M
 
 import torch
 from torch import nn
-
-
-# from scipy.stats import gamma, invgamma
 
 
 def get_optimizer(parameters, optimizer="Adam", lr=1e-3, weight_decay=1e-5):

@@ -7,7 +7,7 @@ from torch.distributions import Distribution as torchDist
 from tqdm import trange
 
 from .fid_samplers import MCMCRegistry
-from .gan_distribution import DiscriminatorTarget, Distribution
+from .gan_distribution import Distribution
 from .utils import time_comp_cls
 from .utils.callbacks import Callback
 
@@ -47,9 +47,6 @@ class Sampler:
         self.sampling = sampling
         self.init_mcmc_args: Dict = copy.deepcopy(mcmc_args or dict())
         self.mcmc_args = copy.deepcopy(self.init_mcmc_args)
-
-        self.radnic_logps = []
-        self.ref_logps = []
 
         self.mcmc = MCMCRegistry()
         self.target = self.ref_dist
@@ -108,8 +105,6 @@ class Sampler:
         meta = dict()
         if collect_imgs:
             xs.append(self.gen.inverse_transform(self.gen(z)).detach().cpu())
-        self.target.radnic_logps = []
-        self.target.ref_logps = []
 
         it = 0
         for it in self.trange(1, n_steps + 1):
@@ -129,6 +124,5 @@ class Sampler:
 
             for callback in self.callbacks:
                 callback.invoke(self.mcmc_args)
-        # self.target.log_prob(z.detach(), data_batch) ??
 
-        return zs, xs, self.target.ref_logps, self.target.radnic_logps
+        return zs, xs

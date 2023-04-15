@@ -2,19 +2,19 @@ dir: &dir log
 n_steps: &n_steps 1000
 every: &every 50
 seed: null
-# sweet_init: &sweet_init false
+# sweet_init: &sweet_init falsm e
 
 device: &device 'cuda'
 burn_in_steps: &burn_in_steps 0.0
 start_sample: &start_sample 0.0
-total_n: &total_n 10000
-batch_size: &batch_size 180
+total_n: &total_n 5 #10000
+batch_size: &batch_size 5 #180
 data_batch_size: *batch_size
 # weight_step: &weight_step 0.1
 step_size: &step_size 0.01
 name: &name mmc_dcgan
 sub_dir: &sub_dir mmc_dcgan
-suffix: *step_size
+suffix: *step_size 
 
 gan_config:
   dp: true

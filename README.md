@@ -95,7 +95,7 @@ chmod +x get_ckpts.sh
 Download statistics for FID cimputation for CIFAR10 dataset:
 
 ```bash
-gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz
+mkdir -p stats & gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz
 ```
 
 <!-- | WGAN GP   | --        |   [TBD]() |   [TBD]() | -->
@@ -125,14 +125,20 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 
  ### Experiments with GANs on CIFAR10 dataset
 
-```experiments/exp_cifar10/DCGAN_samples.ipynb```
+```experiments/exp_cifar10_demo/DCGAN_samples.ipynb```
 
-```experiments/exp_cifar10/SNGAN_samples.ipynb```
+```experiments/exp_cifar10_demo/SNGAN_samples.ipynb```
 
 ### Sampling and FID computation
 
 ```bash
-python experiments/exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,Ex<sup>2</sup>mcmc,flEx<sup>2</sup>mcmc}.yml configs/mmc_dcgan.yml
+python experiments/exp_cifar10_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,Ex<sup>2</sup>mcmc,flEx<sup>2</sup>mcmc}.yml configs/mmc_dcgan.yml
+```
+
+To run a full experiment:
+
+```bash
+chmod +x experiments/exp_cifar10_fid/run.sh & ./experiments/exp_cifar10_fid/run.sh
 ```
 
 ## Results
@@ -149,10 +155,19 @@ python experiments/exp_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,
 
 
 ### Sampling trajectories (CIFAR10)
-Generation trajectories for DCGAN, top to bottom: i-SIR, MALA, Ex<sup>2</sup>MCMC, FlEx<sup>2</sup>MCMC:
+Generation trajectories for DCGAN, top to bottom: ULA, MALA, i-SIR, Ex<sup>2</sup>MCMC, FlEx<sup>2</sup>MCMC:
 
-<img src="./imgs/cifar10_dcgan_gen.png" alt="CIFAR10 generations" width="600"/> 
+<!-- <img src="./imgs/cifar10_dcgan_gen.png" alt="CIFAR10 generations" width="600"/>  -->
 
+<img src="./imgs/mmc_dcgan_ula.png" alt="CIFAR10 generations with ULA" width="600"/> 
+
+<img src="./imgs/mmc_dcgan_mala.png" alt="CIFAR10 generations with MALA" width="600"/> 
+
+<img src="./imgs/mmc_dcgan_isir.png" alt="CIFAR10 generations with i-SIR" width="600"/> 
+
+<img src="./imgs/mmc_dcgan_ex2.png" alt="CIFAR10 generations with Ex2MCMC" width="600"/> 
+
+<img src="./imgs/mmc_dcgan_flex.png" alt="CIFAR10 generations with FlEx2MCMC" width="600"/> 
 
 ### Energy landscape approximation (MNIST)
 

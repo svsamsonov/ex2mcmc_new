@@ -1,9 +1,7 @@
-import subprocess
 from pathlib import Path
 
 import torch
 from torch import nn
-from tqdm import trange
 
 from ex2mcmc.utils.general_utils import PROJECT_PATH, DotConfig
 

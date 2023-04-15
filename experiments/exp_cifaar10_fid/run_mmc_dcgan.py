@@ -17,11 +17,7 @@ from ex2mcmc.utils.general_utils import PROJECT_PATH
 
 sys.path.append(PROJECT_PATH.as_posix())
 from ex2mcmc.fid_sample import Sampler
-
-# from maxent_gan.datasets.utils import get_dataset
 from ex2mcmc.gan_distribution import Distribution, DistributionRegistry
-
-# from maxent_gan.feature import BaseFeature, create_feature
 from ex2mcmc.models.rnvp import RNVP  # noqa: F401
 from ex2mcmc.models.rnvp_minimal import RealNVPProposal
 from ex2mcmc.models.utils import GANWrapper
@@ -195,7 +191,7 @@ def main(config: DotConfig, device: torch.device, group: str):
             label = label.to(device)
             gan.set_label(label)
 
-            zs, xs, _, _ = sampler(start)
+            zs, xs = sampler(start)
             sampler.reset()
             gan.gen.input = gan.gen.output = gan.dis.input = gan.dis.output = None
 

@@ -5,9 +5,6 @@ import torch.nn.functional as F
 from pyro.distributions.transforms import AffineCoupling
 
 
-# from pyro.nn import DenseNN
-
-
 class ConditionalDenseNN(nn.Module):
     """
     An implementation of a simple dense feedforward network taking a context variable, for use in, e.g.,
