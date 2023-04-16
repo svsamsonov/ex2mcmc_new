@@ -11,6 +11,7 @@ import torch
 import torchvision
 import wandb
 from tqdm import trange
+import itertools
 
 from ex2mcmc.utils.general_utils import PROJECT_PATH
 
@@ -489,17 +490,9 @@ if __name__ == "__main__":
 
     proc = subprocess.Popen("/bin/bash", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = proc.communicate(
-        (
-            " ".join(
-                [
-                    # "echo",
-                    # # '"' + str(yaml.round_trip_dump(params)) + '"',
-                    # # "|",
-                    "cat - ",
-                    *args.configs,
-                ]
-            )
-        ).encode("utf-8")
+        ("cat - " + " ".join([f"{conf} <(echo)" for conf in args.configs])).encode(
+            "utf-8"
+        )
     )
     config = yaml.round_trip_load(out.decode("utf-8"))
     print(yaml.round_trip_dump(config))

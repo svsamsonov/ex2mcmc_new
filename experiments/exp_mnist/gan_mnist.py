@@ -48,10 +48,11 @@ class GeneratorMNIST(nn.Module):
 
 
 class DiscriminatorMNIST(nn.Module):
-    def __init__(self):
+    def __init__(self, wgan_cp=False):
         super(DiscriminatorMNIST, self).__init__()
 
         img_size = 28
+        self.wgan_cp = wgan_cp
 
         def discriminator_block(in_filters, out_filters, bn=False):
             block = [
@@ -72,11 +73,12 @@ class DiscriminatorMNIST(nn.Module):
 
         # The height and width of downsampled image
         ds_size = img_size // 2**4
-        self.adv_layer = nn.Sequential(nn.Linear(512, 1, bias=False))
+        self.adv_layer = nn.Sequential(nn.Linear(512, 1, bias=not wgan_cp))
 
     def forward(self, img, foo=None):
-        for p in self.parameters():
-            p.data.clamp_(-0.06, 0.06)
+        if self.wgan_cp:
+            for p in self.parameters():
+                p.data.clamp_(-0.06, 0.06)
 
         out = self.model(img)
         out = out.view(out.shape[0], -1)

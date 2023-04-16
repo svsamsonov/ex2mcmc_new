@@ -132,7 +132,7 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 ### Sampling and FID computation
 
 ```bash
-python experiments/exp_cifar10_fid/run_mmc_dcgan.py configs/mcmc_configs/{ula,mala,isir,Ex<sup>2</sup>mcmc,flEx<sup>2</sup>mcmc}.yml configs/mmc_dcgan.yml
+python experiments/exp_cifar10_fid/run.py configs/mcmc_configs/{ula,mala,isir,Ex<sup>2</sup>mcmc,flEx<sup>2</sup>mcmc}.yml configs/mmc_dcgan.yml
 ```
 
 To run a full experiment:
@@ -155,17 +155,29 @@ chmod +x experiments/exp_cifar10_fid/run.sh & ./experiments/exp_cifar10_fid/run.
 
 
 ### Sampling trajectories (CIFAR10)
-Generation trajectories for DCGAN, top to bottom: ULA, MALA, i-SIR, Ex<sup>2</sup>MCMC, FlEx<sup>2</sup>MCMC:
+Generation trajectories for DCGAN.
+
+<!-- , top to bottom: ULA, MALA, i-SIR, Ex<sup>2</sup>MCMC, FlEx<sup>2</sup>MCMC: -->
 
 <!-- <img src="./imgs/cifar10_dcgan_gen.png" alt="CIFAR10 generations" width="600"/>  -->
 
+* ULA:
+
 <img src="./imgs/mmc_dcgan_ula.png" alt="CIFAR10 generations with ULA" width="600"/> 
+
+* MALA:
 
 <img src="./imgs/mmc_dcgan_mala.png" alt="CIFAR10 generations with MALA" width="600"/> 
 
+* i-SIR:
+
 <img src="./imgs/mmc_dcgan_isir.png" alt="CIFAR10 generations with i-SIR" width="600"/> 
 
+* Ex<sup>2</sup>MCMC:
+
 <img src="./imgs/mmc_dcgan_ex2.png" alt="CIFAR10 generations with Ex2MCMC" width="600"/> 
+
+* FlEx<sup>2</sup>MCMC:
 
 <img src="./imgs/mmc_dcgan_flex.png" alt="CIFAR10 generations with FlEx2MCMC" width="600"/> 
 

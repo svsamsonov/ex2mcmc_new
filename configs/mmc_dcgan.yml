@@ -2,7 +2,7 @@ dir: &dir log
 n_steps: &n_steps 1000
 every: &every 50
 seed: null
-# sweet_init: &sweet_init falsm e
+# sweet_init: &sweet_init false
 
 device: &device 'cuda'
 burn_in_steps: &burn_in_steps 0.0

@@ -358,7 +358,6 @@ def flex2_mcmc(
     gamma,
     mala_iters,
     alpha=1.0,
-    add_pop_size_train=4096,
     stats=None,
     seed=42,
 ):
@@ -383,18 +382,6 @@ def flex2_mcmc(
         )
         # train proposal
         proposal_opt.zero_grad()
-
-        # forward KL
-        # proposals_flattened = proposals.reshape(-1, proposals.shape[-1])
-        # log_target_dens_proposals_flattened = log_target_dens_proposals.reshape(-1)
-        # population_proposals = proposals_flattened
-        # population_log_target_dens_proposals = log_target_dens_proposals_flattened
-
-        # if hist_proposals is not None:
-        #    idxs = np.random.permutation(hist_proposals.shape[0])[:add_pop_size_train]
-        #    population_proposals = torch.cat((population_proposals, hist_proposals[idxs]))
-        #    population_log_target_dens_proposals = torch.cat((population_log_target_dens_proposals, hist_log_target_dens_proposals[idxs]))
-
         population_log_proposal_prob = isir_proposal.log_prob(proposals)
         logw = log_target_dens_proposals - population_log_proposal_prob
 
@@ -413,11 +400,7 @@ def flex2_mcmc(
 
         kl_back = -(log_target_dens_proposals_diff - log_det_J).mean()
 
-        # entropy reg
-        # e = -isir_proposal.log_prob(torch.randn_like(proposals_flattened)).mean()
-
         # opt step
-
         loss = alpha * kl_forw + (1 - alpha) * kl_back  # + 0.1 * e
         loss.backward()
         proposal_opt.step()
