@@ -108,6 +108,14 @@ class DotConfig(Mapping):
 
     def __contains__(self, key):
         return key in self._dict
-
+    
     def __setitem__(self, key, value):
         self._dict[key] = value
+
+    # def __assign__(self, key, value):
+    #     print('ho')
+    #     self._dict[key] = value
+        
+    # def __setattr__(self, key, value):
+    #     print(key)
+    #     self._dict[key] = value

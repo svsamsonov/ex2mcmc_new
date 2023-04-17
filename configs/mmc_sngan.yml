@@ -1,0 +1,128 @@
+dir: &dir log
+n_steps: &n_steps 1000
+every: &every 50
+seed: null
+
+device: &device 'cuda'
+burn_in_steps: &burn_in_steps 0.0
+start_sample: &start_sample 0.0
+total_n: &total_n 5
+batch_size: &batch_size 5
+data_batch_size: *batch_size
+step_size: &step_size 0.01
+name: &name mmc_dcgan
+sub_dir: &sub_dir mmc_dcgan
+suffix: *step_size 
+
+gan_config:
+  dp: true
+  dataset: 
+    name: cifar10
+    params: {}
+  train_transform:
+    Normalize:
+      mean: &mean [0.5, 0.5, 0.5]
+      std: &std [0.5, 0.5, 0.5]
+  prior: normal
+  eval: true
+  generator:
+    name: MMCSNGenerator
+    params:
+      mean: *mean
+      std: *std
+    ckpt_path: checkpoints/CIFAR10/SNGAN_Hinge/netG.pth
+  discriminator:
+    name: MMCSNDiscriminator
+    params:
+      mean: *mean
+      std: *std
+      output_layer: identity
+    ckpt_path: checkpoints/CIFAR10/SNGAN_Hinge/netD.pth
+
+
+distribution: &target_distribution
+  name: DiscriminatorTarget
+
+
+# sample
+sample_params: &sample_params
+  sample: true
+  save_dir: *dir
+  sub_dir: *sub_dir
+
+  distribution:
+    <<: *target_distribution
+  
+  total_n: *total_n
+  batch_size: *batch_size
+  save_every: *every
+
+  params:
+    n_steps: *n_steps
+    save_every: *every
+    burn_in_steps: *burn_in_steps
+    start_sample: *start_sample
+
+    n_sampling_steps: &n_sampling_steps 1
+    
+    sampling: *sampling
+    mcmc_args:
+      <<: *mcmc_args
+      step_size: *step_size
+
+
+# afterall
+afterall_params:
+    results_dir: *dir
+    sub_dir: *sub_dir
+    init_wandb: true
+    
+    compute_is: true
+    compute_fid:  true
+    # remove_chains: false
+    # save_last_slice: true
+    save_chains: true
+
+params: &params
+    sample_params: *sample_params
+    name: *name
+    feature:
+      name: discriminator
+
+wandb_init_params: &wandb_init_params
+#   project: &wandb_project maxent_gan
+#   entity: &wandb_account sverdoot
+#   name: *name
+#   config: *params
+
+logging:
+  wandb: null
+
+callbacks:
+  sampler_callbacks: &sampler_callbacks
+    log_step_size:
+      name: LogCallback
+      params:
+        invoke_every: *every
+        keys:
+          - step_size
+        save_dir: null
+
+  afterall_callbacks: &afterall_callbacks
+    energy:
+      name: EnergyCallback
+      params:
+        gan: null
+        invoke_every: 1
+        device: *device
+        update_input: true
+        batch_size: *batch_size
+        norm_constant: null
+    discriminator:
+      name: DiscriminatorCallback
+      params:
+        gan: null
+        invoke_every: 1
+        device: *device
+        update_input: true
+        batch_size: *batch_size

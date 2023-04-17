@@ -9,7 +9,7 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 <!-- This repository contains Python code to reproduce experiments from [**Local-Global MCMC kernels: the bost of both worlds**](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html) (NeurIPS'22). -->
 
 
-- [Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) \[Paper\]](#local-global-mcmc-kernels-the-bost-of-both-worlds-neurips-2022-paper)
+- [Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) \[Paper\]](#ex2mcmc-local-global-mcmc-kernels-the-bost-of-both-worlds-neurips-2022-paper)
   - [Single chain mixing](#single-chain-mixing)
   - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
   - [Algorithms](#algorithms)
@@ -106,10 +106,10 @@ mkdir -p stats & gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifa
   
 | Experiment | Path | Colab |
 |:----------|:-------|:-----:|
-| Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
-| Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [TBD]() |
-| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [TBD]() |
-| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [TBD]() |
+| Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
+| Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
+| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
+| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
 
 To reproduce the experimets on banana-shaped and funnel distributions:
 
@@ -119,20 +119,20 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 
  ### Experiments with GANs on MNIST dataset
  
- ```experiments/exp_mnist/JSGAN_samples.ipynb```
+ ```experiments/exp_mnist/JSGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
 
- ```experiments/exp_mnist/WGAN_samples.ipynb```
+ ```experiments/exp_mnist/WGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
 
  ### Experiments with GANs on CIFAR10 dataset
 
-```experiments/exp_cifar10_demo/DCGAN_samples.ipynb```
+```experiments/exp_cifar10_demo/DCGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
 
-```experiments/exp_cifar10_demo/SNGAN_samples.ipynb```
+```experiments/exp_cifar10_demo/SNGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
 
 ### Sampling and FID computation
 
 ```bash
-python experiments/exp_cifar10_fid/run.py configs/mcmc_configs/{ula,mala,isir,Ex<sup>2</sup>mcmc,flEx<sup>2</sup>mcmc}.yml configs/mmc_dcgan.yml
+python experiments/exp_cifar10_fid/run.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
 ```
 
 To run a full experiment:
