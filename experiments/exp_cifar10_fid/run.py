@@ -13,7 +13,7 @@ import wandb
 from tqdm import trange
 import itertools
 
-from ex2mcmc.utils.general_utils import PROJECT_PATH
+from ex2mcmc.utils.general_utils import 
 
 
 sys.path.append(PROJECT_PATH.as_posix())
