@@ -1,7 +1,5 @@
 torch-mimicry @ git+https://github.com/kwotsin/mimicry.git@a7fda06c4aff1e6af8dc4c4a35ed6636e434c766 
 tqdm
-torch
-torchvision
 pyro-ppl
 jaxlib
 jax
