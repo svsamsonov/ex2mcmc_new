@@ -827,18 +827,6 @@ files = [
 ]
 
 [[package]]
-name = "einops"
-version = "0.6.0"
-description = "A new flavour of deep learning operations"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "einops-0.6.0-py3-none-any.whl", hash = "sha256:c7b187a5dc725f079860ec2d330c1820448948622d826273345a8dd8d5f695bd"},
-    {file = "einops-0.6.0.tar.gz", hash = "sha256:6f6c78739316a2e3ccbce8052310497e69da092935e4173f2e76ec4e3a336a35"},
-]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.1.1"
 description = "Backport of PEP 654 (exception groups)"
@@ -2177,27 +2165,6 @@ numpy = ">1.20"
 
 [package.extras]
 dev = ["absl-py", "pyink", "pylint (>=2.6.0)", "pytest", "pytest-xdist"]
-
-[[package]]
-name = "mlpaper"
-version = "0.0.3"
-description = "Easy benchmarking of machine learning models with sklearn interface with statistical tests built-in."
-category = "main"
-optional = false
-python-versions = ">=3.5"
-files = [
-    {file = "mlpaper-0.0.3.tar.gz", hash = "sha256:525add6a45c5979fbfe26172838590e66eedf6e80d8d1438102f3649e210320a"},
-]
-
-[package.dependencies]
-joblib = ">=0.11"
-numpy = ">=1.15.0"
-pandas = ">=0.24.0"
-scipy = ">=1.1.0"
-
-[package.extras]
-demo = ["matplotlib (>=3.3.0)", "scikit_learn (>=0.21.0)"]
-test = ["pytest (>=3.0.7)", "pytest_cov (>=2.5.1)", "scikit_learn (>=0.21.0)", "statsmodels (>=0.9.0)"]
 
 [[package]]
 name = "mpmath"
@@ -5083,4 +5050,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.8"
-content-hash = "048ce94bade119a3a82a725579a6751e91fb7e2c36049ffab4cb6e047a4be958"
+content-hash = "f4c45abf0362fad267dc70eae182f82d49fee3b401c2846df2d488003de90f46"

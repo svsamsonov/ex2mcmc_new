@@ -1,13 +1,22 @@
-from pathlib import Path
-from setuptools import find_packages, setup
 
-requirements = Path('requirements.txt').open('r').readlines()
+import os
 
-# setup(
-#     name="foo",
-#     version="1.0",
-#     packages=find_packages(),
-#     install_requires=requirements,
-#     # extras_require={"dev": [x + dev[x] if dev[x] != "*" else x for x in dev]},
-# )
-setup()
+import pkg_resources
+from setuptools import setup, find_packages
+
+setup(
+    name="ex2mcmc",
+    py_modules=["ex2mcmc"],
+    version="0.2.0",
+    description="",
+    author="",
+    packages=find_packages(exclude=["tests*"]),
+    install_requires=[
+        str(r)
+        for r in pkg_resources.parse_requirements(
+            open(os.path.join(os.path.dirname(__file__), "requirements.txt"))
+        )
+    ],
+    include_package_data=True,
+    extras_require={'dev': ['pytest']},
+)
