@@ -15,6 +15,7 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
   - [Algorithms](#algorithms)
   - [Installation](#installation)
   - [Usage](#usage)
+    - [Demonstration on SNGAN](#demonstration-on-sngan)
     - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
     - [Experiments with GANs on MNIST dataset](#experiments-with-gans-on-mnist-dataset)
     - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
@@ -102,11 +103,15 @@ mkdir -p stats & gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifa
 
 ## Usage
 
+### Demonstration on SNGAN
+
+Try with colab:  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EQQ_OdwCLn5MsOzlG-GS7yNcjTBU-KMp?usp=sharing)
+
  ### Experiments with synthetic distributions:
   
 | Experiment | Path | Colab |
 |:----------|:-------|:-----:|
-| Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
+| Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
 | Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xmBOZr1YhN8E7Y8GuwjgdM7hqaCgE6ik?usp=sharing) |
 | FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
 | FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
@@ -125,9 +130,13 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 
  ### Experiments with GANs on CIFAR10 dataset
 
-```experiments/exp_cifar10_demo/DCGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
+```experiments/exp_cifar10_demo/DCGAN_samples.ipynb``` 
 
-```experiments/exp_cifar10_demo/SNGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
+<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() -->
+
+```experiments/exp_cifar10_demo/SNGAN_samples.ipynb``` 
+
+<!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() -->
 
 ### Sampling and FID computation
 

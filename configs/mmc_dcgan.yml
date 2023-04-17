@@ -2,7 +2,6 @@ dir: &dir log
 n_steps: &n_steps 1000
 every: &every 50
 seed: null
-# sweet_init: &sweet_init false
 
 device: &device 'cuda'
 burn_in_steps: &burn_in_steps 0.0
@@ -10,7 +9,6 @@ start_sample: &start_sample 0.0
 total_n: &total_n 5 #10000
 batch_size: &batch_size 5 #180
 data_batch_size: *batch_size
-# weight_step: &weight_step 0.1
 step_size: &step_size 0.01
 name: &name mmc_dcgan
 sub_dir: &sub_dir mmc_dcgan
@@ -93,68 +91,11 @@ params: &params
       name: discriminator
 
 wandb_init_params: &wandb_init_params
-#   project: &wandb_project maxent_gan
-#   entity: &wandb_account sverdoot
-#   name: *name
-#   config: *params
 
 logging:
   wandb: null
 
 callbacks:
-  # feature_callbacks: &feature_callbacks
-  #   log_weight:
-  #     name: LogCallback
-  #     params:
-  #       invoke_every: *every
-  #       keys:
-  #         - weight_norm
-  #       save_dir: null
-  #   log_out:
-  #     name: LogCallback
-  #     params:
-  #       invoke_every: *every
-  #       keys:
-  #         - out
-  #       save_dir: null
-  #   log_ref:
-  #     name: LogCallback
-  #     params:
-  #       invoke_every: *every
-  #       keys:
-  #         - ref_score
-  #       save_dir: null
-  #   log_res:
-  #     name: LogCallback
-  #     params:
-  #       invoke_every: *every
-  #       keys:
-  #         - residual
-  #       save_dir: null
-  #   energy:
-  #     name: EnergyCallback
-  #     params:
-  #       gan: null
-  #       invoke_every: *every
-  #       device: *device
-  #       update_input: true
-  #       # batch_size: *batch_size
-  #       norm_constant: null
-  #   log_energy:
-  #     name: LogCallback
-  #     params:
-  #       invoke_every: *every
-  #       keys:
-  #         - Energy
-  #       save_dir: null
-  #   log_dot_pr:
-  #     name: LogCallback
-  #     params:
-  #       invoke_every: *every
-  #       keys:
-  #         - dot_pr
-  #       save_dir: null
-
   sampler_callbacks: &sampler_callbacks
     log_step_size:
       name: LogCallback
@@ -182,22 +123,3 @@ callbacks:
         device: *device
         update_input: true
         batch_size: *batch_size
-    # wandb:
-    #   name: WandbCallback
-    #   params:
-    #     init_params:
-    #       <<: *wandb_init_params
-    #       reinit: False
-    #     invoke_every: 1
-    #     keys:
-    #       - Energy
-    #       - D(G(z))
-    # wandb_imgs:
-    #   name: WandbCallback
-    #   params:
-    #     init_params:
-    #       <<: *wandb_init_params
-    #       reinit: False
-    #     invoke_every: 1
-    #     keys:
-    #       - imgs

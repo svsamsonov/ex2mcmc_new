@@ -14,5 +14,6 @@ setup(
             'jax',
             'easydict',
             'seaborn',
+            'ruamel.yaml'
         ]
 )
