@@ -122,13 +122,14 @@ def isir_step(
     log_qs = torch.cat([logq_x[:, None], proposal.log_prob(particles)], 1)
     log_ps = torch.cat([logp_x[:, None], target.log_prob(particles)], 1)
     particles = torch.cat([point[:, None, :], particles], 1)
+    log_ps = target.log_prob(particles)
 
     log_weights = log_ps - log_qs
     indices = Categorical(logits=log_weights).sample()
 
     x = particles[np.arange(point.shape[0]), indices]
 
-    return x, particles.detach(), log_ps, log_qs, indices
+    return x, particles, log_ps, log_qs, indices
 
 
 @MCMCRegistry.register()
@@ -510,7 +511,8 @@ def flex2mcmc(
 
     # hist_proposals = None
 
-    meta["logp"] = target.log_prob(point)  # meta.get("logp", target.log_prob(point))
+    meta["logp"] = target.log_prob(point)  # 
+    meta["logp"] = meta.get("logp", target.log_prob(point))
 
     pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
     for step_id in pbar:
@@ -529,7 +531,7 @@ def flex2mcmc(
         logq_x = log_qs[np.arange(point.shape[0]), indices]
         meta["sir_accept"].append((indices != 0).float().mean().item())
         point = point.detach().requires_grad_()
-        meta["logp"] = logp_x
+        #meta["logp"] = logp_x
         meta["mask"] = (
             F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
         )
@@ -548,11 +550,9 @@ def flex2mcmc(
             )
             step_size = meta["step_size"][-1]
             point = points[-1]
-        #     print(-target.ref_dist.log_prob(point.detach()).mean().item())
-        # print(meta["sir_accept"][-1], meta["mh_accept"][-1])
 
-        meta.pop("logp")
-        meta.pop("grad")
+        # meta.pop("logp")
+        # meta.pop("grad")
 
         if not keep_graph:
             point = point.detach().requires_grad_()
@@ -568,7 +568,8 @@ def flex2mcmc(
 
             loss = (
                 forward_kl_weight * kl_forw + backward_kl_weight * kl_back
-            )  # + entr_weight * entr
+            )
+            # loss = log_ps[:, 1:].mean()
             proposal.zero_grad()
             loss.backward()
             # torch.nn.utils.clip_grad_norm_(proposal.parameters(), 10.0)

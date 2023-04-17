@@ -2,7 +2,6 @@ import argparse
 import datetime
 import logging
 import subprocess
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -13,10 +12,6 @@ import wandb
 from tqdm import trange
 import itertools
 
-from ex2mcmc.utils.general_utils import 
-
-
-sys.path.append(PROJECT_PATH.as_posix())
 from ex2mcmc.fid_sample import Sampler
 from ex2mcmc.gan_distribution import Distribution, DistributionRegistry
 from ex2mcmc.models.rnvp import RNVP  # noqa: F401

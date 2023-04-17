@@ -383,7 +383,7 @@ def flex2_mcmc(
         # train proposal
         proposal_opt.zero_grad()
         population_log_proposal_prob = isir_proposal.log_prob(proposals)
-        logw = log_target_dens_proposals - population_log_proposal_prob
+        logw = (log_target_dens_proposals - population_log_proposal_prob).detach()
 
         kl_forw = -(
             (population_log_proposal_prob * torch.softmax(logw, dim=-1)).sum(axis=-1)
