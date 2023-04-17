@@ -175,11 +175,11 @@ Generation trajectories for DCGAN.
 
 * Ex<sup>2</sup>MCMC:
 
-<img src="./imgs/mmc_dcgan_ex2.png" alt="CIFAR10 generations with Ex2MCMC" width="600"/> 
+<img src="./imgs/mmc_dcgan_ex2mcmc.png" alt="CIFAR10 generations with Ex2MCMC" width="600"/> 
 
 * FlEx<sup>2</sup>MCMC:
 
-<img src="./imgs/mmc_dcgan_flex.png" alt="CIFAR10 generations with FlEx2MCMC" width="600"/> 
+<img src="./imgs/mmc_dcgan_flex2mcmc.png" alt="CIFAR10 generations with FlEx2MCMC" width="600"/> 
 
 ### Energy landscape approximation (MNIST)
 
