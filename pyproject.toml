@@ -1,3 +1,8 @@
+
+[build-system]
+requires = ["poetry"]
+build-backend = "poetry.masonry.api"
+
 [tool.poetry]
 name = "ex2mcmc"
 version = "0.0.2"
@@ -6,6 +11,7 @@ authors = ["Sergey Samsonov", "Evgeny Lagutin", "Marylou Gabrié", "Alain Durmus
 readme = "README.md"
 repository = "http://github.com/svsamsonov/ex2mcmc_new.git"
 documentation = "TBD"
+license = "MIT"
 
 [tool.black]
 target-version = ["py38"]
@@ -44,13 +50,13 @@ pyro-ppl = "^1.8.4"
 pot = "^0.9.0"
 easydict = "^1.10"
 mlpaper = "^0.0.3"
-statsmodels = "^0.13.5"
 jaxlib = "^0.4.7"
 jax = "^0.4.8"
 gdown = "^4.7.1"
 wandb = "^0.14.2"
 vulture = "^2.7"
 docker = "^6.0.1"
+toml = "^0.10.2"
 
 [tool.isort]
 src_paths = ["."]
