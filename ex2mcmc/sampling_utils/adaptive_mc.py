@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 import numpy as np
 import torch
 from torch import nn
-from tqdm import tqdm, trange
+from tqdm import trange
 
 from .adaptive_sir_loss import get_loss
 from .ebm_sampling import MALATransition, MHKernel, grad_energy
@@ -48,7 +48,7 @@ class AugmentedULA(AbstractMCMC):
         acc_rate = torch.zeros(batch_size)
 
         if flow is not None:
-            z, _ = flow(start)
+            z, _ = flow.inverse(start)
         else:
             z = start
 
@@ -56,14 +56,14 @@ class AugmentedULA(AbstractMCMC):
             with torch.no_grad():
                 x_new = proposal.sample((batch_size,))
                 if flow is not None:
-                    z_new, log_jac = flow(x_new)
-                    x, minus_log_jac = flow.inverse(z)
-                    log_prop1 = proposal(x) + minus_log_jac
-                    log_prop2 = proposal(x_new) - log_jac
+                    z_new, log_jac = flow.inverse(x_new)
+                    x, minus_log_jac = flow.forward(z)
+                    log_prop1 = proposal.log_prob(x) + minus_log_jac
+                    log_prop2 = proposal.log_prob(x_new) - log_jac
                 else:
                     pass
-                log_tar1 = beta * target(z)
-                log_tar2 = beta * target(z_new)
+                log_tar1 = beta * target.log_prob(z)
+                log_tar2 = beta * target.log_prob(z_new)
                 mask = MHKernel.get_mask(
                     log_tar1,
                     log_tar2,
@@ -116,8 +116,8 @@ class CorrelatedKernel:
 
 
 def compute_sir_log_weights(x, target, proposal, flow, beta=1.0):
-    x_pushed, log_jac = flow(x)
-    log_weights = beta * target(x_pushed) + log_jac - proposal(x)
+    x_pushed, log_jac_inv = flow.inverse(x)
+    log_weights = beta * target.log_prob(x_pushed) + log_jac_inv - proposal.log_prob(x)
     return log_weights, x_pushed
 
 
@@ -142,7 +142,7 @@ def adaptive_sir_correlated_dynamics(
 
     for _ in range_gen(n_steps):
         if flow is not None:
-            z_pushed, _ = flow(z)
+            z_pushed, _ = flow.inverse(z)
         else:
             z_pushed = z
 
@@ -162,7 +162,7 @@ def adaptive_sir_correlated_dynamics(
             )
         else:
             z_pushed = X_view
-            log_weight = target(z_pushed) - proposal(z_pushed)
+            log_weight = target.log_prob(z_pushed) - proposal.log_prob(z_pushed)
 
         log_weight = log_weight.view(batch_size, N)
         max_logs = torch.max(log_weight, dim=1)[0][:, None]
@@ -181,7 +181,7 @@ def adaptive_sir_correlated_dynamics(
         z = X[np.arange(batch_size), indices, :]
 
     if flow is not None:
-        z_pushed, _ = flow(z)
+        z_pushed, _ = flow.inverse(z)
     else:
         z_pushed = z
 
@@ -247,7 +247,7 @@ class CISIR(AbstractMCMC):
         )
 
 
-def ex2_mcmc_mala_new_proposal(
+def ex2mcmc_mala_new_proposal(
     z,
     target,
     proposal,
@@ -281,7 +281,7 @@ def ex2_mcmc_mala_new_proposal(
     range_gen = trange if verbose else range
 
     if flow is not None:
-        z_pushed, log_jac = flow(z)
+        z_pushed, log_jac = flow.inverse(z)
     else:
         z_pushed = z
 
@@ -308,7 +308,7 @@ def ex2_mcmc_mala_new_proposal(
             )
         else:
             z_pushed = X_view
-            log_weight = beta * target(X_view) - proposal(X_view)
+            log_weight = beta * target.log_prob(X_view) - proposal.log_prob(X_view)
 
         log_weight = log_weight.view(batch_size, N)
         z_pushed = z_pushed.view(X.shape)
@@ -335,7 +335,7 @@ def ex2_mcmc_mala_new_proposal(
 
         if step_id != n_steps - 1:
             if flow is not None:
-                z, _ = flow.inverse(z_pushed)
+                z, _ = flow.forward(z_pushed)
             else:
                 z = z_pushed
 
@@ -352,9 +352,6 @@ def ex2_mcmc_mala_new_proposal(
             )
             acceptance += mask.float() / mala_steps
 
-        # if not ind_chains:
-        #    z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), indices, :]
-
         if not ind_chains:
             z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), 0, :]
 
@@ -366,7 +363,7 @@ def ex2_mcmc_mala_new_proposal(
     return z_sp, acceptance, mala_transition.adapt_grad_step
 
 
-def ex2_mcmc_mala(
+def ex2mcmc_mala(
     z,
     target,
     proposal,
@@ -401,7 +398,7 @@ def ex2_mcmc_mala(
     range_gen = trange if verbose else range
 
     if flow is not None:
-        z_pushed, log_jac = flow(z)
+        z_pushed, _ = flow.inverse(z)
     else:
         z_pushed = z
 
@@ -428,7 +425,7 @@ def ex2_mcmc_mala(
             )
         else:
             z_pushed = X_view
-            log_weight = beta * target(X_view) - proposal(X_view)
+            log_weight = beta * target.log_prob(X_view) - proposal.log_prob(X_view)
 
         log_weight = log_weight.view(batch_size, N)
         z_pushed = z_pushed.view(X.shape)
@@ -467,12 +464,9 @@ def ex2_mcmc_mala(
 
         if step_id != n_steps - 1:
             if flow is not None:
-                z, _ = flow.inverse(z_pushed)
+                z, _ = flow.forward(z_pushed)
             else:
                 z = z_pushed
-
-        # if not ind_chains:
-        #    z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), indices, :]
 
         if not ind_chains:
             z = z_pushed.reshape(batch_size, N, z_dim)[np.arange(batch_size), 0, :]
@@ -535,7 +529,7 @@ class Ex2MCMC(AbstractMCMC):
 
         self_kwargs.pop("_steps_done")
 
-        return ex2_mcmc_mala(start, target, proposal, n_steps, **self_kwargs)
+        return ex2mcmc_mala(start, target, proposal, n_steps, **self_kwargs)
 
 
 class FlowMCMC:
@@ -576,7 +570,7 @@ class FlowMCMC:
         if inp is None:
             inp = self.proposal.sample((self.batch_size,))
         elif inv:
-            inp, _ = self.flow.inverse(inp)
+            inp, _ = self.flow.forward(inp)
         # print("before mcmc call")
         out = self.mcmc_call(inp, self.target, self.proposal, flow=self.flow)
         if isinstance(out, Tuple):
@@ -586,7 +580,7 @@ class FlowMCMC:
             acc_rate = 1
         out = out[-1]
         out = out.to(self.device)
-        nll = -self.target(out).mean().item()
+        nll = -self.target.log_prob(out).mean().item()
 
         if do_step:
             loss_est, loss = self.loss(out, acc_rate=acc_rate, alpha=alpha)

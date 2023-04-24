@@ -1,497 +1,607 @@
+from typing import Callable, Dict, Optional, Tuple, Union
+
 import numpy as np
 import torch
-import tqdm
-from pyro.infer import MCMC, NUTS
-from torch import nn
-from torch.distributions import Categorical, MultivariateNormal
+from pyro.infer import HMC, MCMC
+from torch.distributions import Normal  # noqa: F401
+from torch.distributions import Categorical
+from torch.distributions import Distribution as torchDist
+from torch.nn import functional as F
+from tqdm import trange
+
+from .gan_distribution import Distribution
 
 
-class RealNVPProposal(nn.Module):
-    def __init__(self, lat_size, device, hidden=32, num_blocks=4, prior_scale=1.0):
-        super(RealNVPProposal, self).__init__()
+class MCMCRegistry:
+    registry: Dict = {}
 
-        self.prior = MultivariateNormal(
-            torch.zeros(lat_size).to(device),
-            torch.eye(lat_size).to(device) * prior_scale,
+    @classmethod
+    def register(cls, name: Optional[str] = None) -> Callable:
+        def inner_wrapper(function: Callable) -> Callable:
+            if name is None:
+                name_ = function.__name__
+            else:
+                name_ = name
+            cls.registry[name_] = function
+            return function
+
+        return inner_wrapper
+
+    @classmethod
+    def __call__(cls, name: str, *args, **kwargs) -> Tuple[torch.FloatTensor, Dict]:
+        exec = cls.registry[name]
+        # kwargs["proposal"] = kwargs.get("proposal", Normal(0, 1))
+        kwargs["project"] = kwargs.get("project", lambda _: _)
+        chains, meta = exec(*args, **kwargs)
+        return chains, meta
+
+
+@MCMCRegistry.register()
+def ula(
+    start: torch.FloatTensor,
+    target: Union[Distribution, torchDist],
+    proposal: Union[Distribution, torchDist],
+    n_samples: int,
+    burn_in: int,
+    project: Callable = lambda x: x,
+    *,
+    step_size: float,
+    verbose: bool = False,
+    meta: Optional[Dict] = None,
+    keep_graph: bool = False,
+    natural_grad: bool = False,  # True,
+    tikhonov_reg: float = 0.1,
+) -> Tuple[torch.FloatTensor, Dict]:
+    """
+    Unadjusted Langevin Algorithm
+
+    Args:
+        start - strating points of shape [n_chains, dim]
+        target - target distribution instance with method "log_prob"
+        n_samples - number of last samples from each chain to return
+        burn_in - number of first samples from each chain to throw away
+        step_size - step size for drift term
+        verbose - whether to show iterations' bar
+
+    Returns:
+        tensor of chains with shape [n_samples, n_chains, dim]
+    """
+    chains = []
+    meta = meta or dict()
+
+    point = start.clone()
+    point.requires_grad_(True)
+    point.grad = None
+
+    pbar = trange if verbose else range
+    for step_id in pbar(n_samples + burn_in):
+        logp = target.log_prob(point)
+        grad = torch.autograd.grad(
+            logp.sum(), point, create_graph=keep_graph, retain_graph=keep_graph
+        )[0]
+        if natural_grad:
+            step_size_ = step_size / (
+                tikhonov_reg + torch.norm(grad, dim=-1)[:, None].detach()
+            )
+        else:
+            step_size_ = step_size
+
+        noise = torch.randn_like(point, dtype=torch.float).to(point.device)
+        noise_scale = (2.0 * step_size_) ** 0.5
+
+        point = point + step_size_ * grad + noise_scale * noise
+        point = project(point)
+
+        if not keep_graph:
+            point = point.detach().requires_grad_()
+        if step_id >= burn_in:
+            chains.append(point.cpu().clone())
+    chains = torch.stack(chains, 0)
+    meta["mask"] = torch.zeros(point.shape[0], dtype=torch.bool)
+
+    return chains, meta
+
+
+@MCMCRegistry.register()
+# @torch.no_grad()
+def isir_step(
+    start: torch.FloatTensor,
+    target,
+    proposal: Union[Distribution, torchDist],
+    *,
+    n_particles: int,
+    logp_x=None,
+    logq_x=None,
+) -> Tuple:
+    point = start.clone()
+    # logp_x = target.log_prob(point) if logp_x is None else logp_x
+    logq_x = proposal.log_prob(point) if logq_x is None else logq_x
+
+    particles = proposal.sample((point.shape[0], n_particles - 1))
+    log_qs = torch.cat([logq_x[:, None], proposal.log_prob(particles)], 1)
+    # log_ps = torch.cat([logp_x[:, None], target.log_prob(particles)], 1)
+    particles = torch.cat([point[:, None, :], particles], 1)
+    log_ps = target.log_prob(particles)
+
+    log_weights = log_ps - log_qs
+    indices = Categorical(logits=log_weights).sample()
+
+    x = particles[np.arange(point.shape[0]), indices]
+
+    return x, particles, log_ps, log_qs, indices
+
+
+@MCMCRegistry.register()
+@torch.no_grad()
+def isir(
+    start: torch.FloatTensor,
+    target,
+    proposal: Union[Distribution, torchDist],
+    n_samples: int,
+    burn_in: int,
+    project: Callable = lambda x: x,
+    *,
+    n_particles: int,
+    verbose: bool = False,
+    meta: Optional[Dict] = None,
+    **kwargs,
+) -> Tuple[torch.FloatTensor, Dict]:
+    """
+    Iterated Sampling Importance Resampling
+
+    Args:
+        start - strating points of shape [n_chains x dim]
+        target - target distribution instance with method "log_prob"
+        proposal - proposal distribution instance with methods "log_prob" and "sample"
+        n_samples - number of last samples from each chain to return
+        burn_in - number of first samples from each chain to throw away
+        n_particles - number of particles including one from previous step
+        verbose - whether to show iterations' bar
+
+    Returns:
+        tensor of chains with shape [n_samples, n_chains, dim], meta
+    """
+    chains = []
+    point = start.clone()
+    # point = project(start)
+
+    meta = meta or dict()
+    meta["sir_accept"] = meta.get("sir_accept", [])
+    meta["logp"] = meta.get("logp", target.log_prob(point))
+    logp_x = meta["logp"]
+    logq_x = proposal.log_prob(point)
+
+    pbar = trange if verbose else range
+    for step_id in pbar(n_samples + burn_in):
+        point, _, log_ps, log_qs, indices = isir_step(
+            point,
+            target,
+            proposal,
+            n_particles=n_particles,
+            logp_x=logp_x,
+            logq_x=logq_x,
+        )
+        logp_x = log_ps[np.arange(point.shape[0]), indices]
+        logq_x = log_qs[np.arange(point.shape[0]), indices]
+        meta["sir_accept"].append((indices != 0).float().mean().item())
+
+        if step_id >= burn_in:
+            chains.append(point.cpu().clone())
+    chains = torch.stack(chains, 0)
+
+    meta["logp"] = logp_x
+    meta["mask"] = F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+
+    return chains, meta
+
+
+def heuristics_step_size(
+    mean_acceptance: float,
+    target_acceptance: float,
+    step_size: float,
+    factor: float = 1.05,
+    tol: float = 0.03,
+):
+    if mean_acceptance - target_acceptance > tol:
+        return step_size * factor
+    if target_acceptance - mean_acceptance > tol:
+        return step_size / factor
+    return step_size
+
+
+@MCMCRegistry.register()
+def mala(
+    start: torch.FloatTensor,
+    target: Union[Distribution, torchDist],
+    proposal: Union[Distribution, torchDist],
+    n_samples: int,
+    burn_in: int,
+    project: Callable = lambda x: x,
+    *,
+    step_size: float,
+    verbose: bool = False,
+    target_acceptance=None,
+    meta: Optional[Dict] = None,
+    keep_graph: bool = False,
+) -> Tuple[torch.FloatTensor, Dict]:
+    """
+    Metropolis-Adjusted Langevin Algorithm with Normal proposal
+
+    Args:
+        start - strating points of shape [n_chains x dim]
+        target - target distribution instance with method "log_prob"
+        step_size - step size for drift term
+        verbose - whether show iterations' bar
+
+    Returns:
+        sequence of slices per each iteration, meta
+    """
+    if n_samples + burn_in <= 0:
+        raise ValueError("Number of steps might be positive")
+
+    chains = []
+    point = start.clone()
+    point.requires_grad_()
+    point.grad = None
+
+    device = point.device
+    proposal = torch.distributions.MultivariateNormal(
+        torch.zeros(point.shape[-1], device=device),
+        torch.eye(point.shape[-1], device=device),
+    )
+
+    meta = meta or dict()
+    meta["mh_accept"] = meta.get("mh_accept", [])
+    meta["step_size"] = meta.get("step_size", [])
+
+    meta["logp"] = logp_x = target.log_prob(
+        point
+    )  # meta.get("logp", target.log_prob(point))
+    if "grad" not in meta:
+        if keep_graph:
+            grad_x = torch.autograd.grad(
+                meta["logp"].sum(),
+                point,
+                create_graph=keep_graph,
+                retain_graph=keep_graph,
+            )[0]
+        else:
+            grad_x = torch.autograd.grad(logp_x.sum(), point)[0].detach()
+        meta["grad"] = grad_x
+    else:
+        grad_x = meta["grad"]
+
+    pbar = trange if verbose else range
+    for step_id in pbar(n_samples + burn_in):
+        noise = proposal.sample(point.shape[:-1])
+        proposal_point = point + step_size * grad_x + noise * (2 * step_size) ** 0.5
+        proposal_point = project(proposal_point)
+        if not keep_graph:
+            proposal_point = proposal_point.detach().requires_grad_()
+
+        logp_y = target.log_prob(proposal_point)
+        grad_y = torch.autograd.grad(
+            logp_y.sum(),
+            proposal_point,
+            create_graph=keep_graph,
+            retain_graph=keep_graph,
+        )[
+            0
+        ]  # .detach()
+
+        log_qyx = proposal.log_prob(noise)
+        log_qxy = proposal.log_prob(
+            (point - proposal_point - step_size * grad_y) / (2 * step_size) ** 0.5
         )
 
-        masks = num_blocks * [
-            [i % 2 for i in range(lat_size)],
-            [(i + 1) % 2 for i in range(lat_size)],
-        ]
-        masks = torch.FloatTensor(masks)
-        self.masks = nn.Parameter(masks, requires_grad=False)
+        accept_prob = torch.clamp((logp_y + log_qxy - logp_x - log_qyx).exp(), max=1)
+        mask = torch.rand_like(accept_prob) < accept_prob
+        mask = mask.detach()
 
-        self.t = torch.nn.ModuleList(
-            [
-                nn.Sequential(
-                    nn.Linear(lat_size, hidden),
-                    nn.LeakyReLU(),
-                    nn.Linear(hidden, hidden),
-                    nn.LeakyReLU(),
-                    nn.Linear(hidden, lat_size),
+        if keep_graph:
+            mask_f = mask.float()
+            point = point * (1 - mask_f)[:, None] + proposal_point * mask_f[:, None]
+            logp_x = logp_x * (1 - mask_f) + logp_y * mask_f
+            grad_x = grad_x * (1 - mask_f)[:, None] + grad_y * mask_f[:, None]
+        else:
+            with torch.no_grad():
+                point[mask, :] = proposal_point[mask, :]
+                logp_x[mask] = logp_y[mask]
+                grad_x[mask] = grad_y[mask]
+
+        meta["mh_accept"].append(mask.float().mean().item())
+        if target_acceptance:
+            step_size = heuristics_step_size(
+                meta["mh_accept"][-1], target_acceptance, step_size
+            )
+        meta["step_size"].append(step_size)
+
+        if not keep_graph:
+            point = point.detach().requires_grad_()
+        if step_id >= burn_in:
+            chains.append(point.cpu().clone())
+    chains = torch.stack(chains, 0)
+
+    meta["logp"] = logp_x
+    meta["grad"] = grad_x
+    meta["mask"] = mask.detach().cpu()
+
+    return chains, meta
+
+
+@MCMCRegistry.register()
+def ex2mcmc(
+    start: torch.FloatTensor,
+    target: Union[Distribution, torchDist],
+    proposal: Union[Distribution, torchDist],
+    n_samples: int,
+    burn_in: int,
+    project: Callable = lambda x: x,
+    *,
+    step_size: float,
+    n_particles: int,
+    n_mala_steps: int = 1,
+    target_acceptance: float = False,
+    verbose: bool = False,
+    meta: Optional[Dict] = None,
+    keep_graph: bool = False,
+):
+    """
+    Ex2MCMC
+
+    Args:
+        start - strating points of shape [n_chains x dim]
+        target - target distribution instance with method "log_prob"
+        proposal - proposal distribution
+        n_samples - number of last samples from each chain to return
+        burn_in - number of first samples from each chain to throw away
+        step_size - step size for drift term
+        n_particles - number of particles including one from previous step
+        n_mala_steps - number of MALA steps after each SIR step
+        verbose - whether to show iterations' bar
+
+    Returns:
+        tensor of chains with shape [n_samples, n_chains, dim],
+          acceptance rates for each iteration
+    """
+
+    chains = []
+    point = start.clone()
+    point.requires_grad_(True)
+    point.grad = None
+
+    meta = meta or dict()
+    meta["sir_accept"] = meta.get("sir_accept", [])
+    meta["mh_accept"] = meta.get("mh_accept", [])
+    meta["step_size"] = meta.get("step_size", [])
+
+    pbar = trange if verbose else range
+    meta["logp"] = meta.get("logp", target.log_prob(point))
+    for step_id in pbar(n_samples + burn_in):
+        # points, meta = isir(
+        #     point, target, proposal, 1, 0, project, n_particles=n_particles, meta=meta
+        # )
+        # meta["grad"] = torch.autograd.grad(meta["logp"].sum(), points[-1])[
+        #     0
+        # ]  # .detach()
+        logp_x = meta["logp"]
+        logq_x = proposal.log_prob(point)
+
+        point, proposals, log_ps, log_qs, indices = isir_step(
+            point,
+            target,
+            proposal,
+            n_particles=n_particles,
+            logp_x=logp_x,
+            logq_x=logq_x,
+        )
+        logp_x = log_ps[np.arange(point.shape[0]), indices]
+        meta["sir_accept"].append((indices != 0).float().mean().item())
+        point = point.detach().requires_grad_()
+        meta["logp"] = logp_x
+        meta["mask"] = (
+            F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+        )
+
+        points, meta = mala(
+            point,  # s[-1],
+            target,
+            proposal,
+            n_mala_steps,
+            n_mala_steps - 1,
+            project,
+            step_size=step_size,
+            target_acceptance=target_acceptance,
+            meta=meta,
+            keep_graph=keep_graph,
+        )
+        step_size = meta["step_size"][-1]
+        point = points[-1]
+        if not keep_graph:
+            point = point.detach().requires_grad_()
+        if step_id >= burn_in:
+            chains.append(point.cpu().clone())
+
+    chains = torch.stack(chains, 0)
+    return chains, meta
+
+
+@MCMCRegistry.register()
+def flex2mcmc(
+    start: torch.FloatTensor,
+    target,
+    proposal,
+    n_samples: int,
+    burn_in: int,
+    project: Callable = lambda x: x,
+    *,
+    n_particles: int,
+    step_size: float,
+    n_mala_steps: int = 1,
+    # add_pop_size_train: int = 200, #4096,
+    forward_kl_weight: float = 1.0,
+    backward_kl_weight: float = 1.0,
+    entr_weight: float = 0.1,
+    target_acceptance: float = False,
+    verbose: bool = False,
+    meta: Optional[Dict] = None,
+    keep_graph: bool = False,
+) -> Tuple[torch.FloatTensor, Dict]:
+    """
+    Ex2MCMC with Flow proposal
+
+    Args:
+        start - strating points of shape [n_chains x dim]
+        target - target distribution instance with method "log_prob"
+        proposal - instance of RealNVProposal
+        n_samples - number of last samples from each chain to return
+        burn_in - number of first samples from each chain to throw away
+        step_size - step size for drift term
+        n_particles - number of particles including one from previous step
+        n_mala_steps - number of MALA steps after each SIR step
+        verbose - whether to show iterations' bar
+
+    Returns:
+        tensor of chains with shape [n_samples, n_chains, dim],
+          acceptance rates for each iteration
+    """
+    chains = []
+    if meta:
+        meta["sir_accept"] = meta.get("sir_accept", [])
+        meta["forward_kl"] = meta.get("forward_kl", [])
+        meta["backward_kl"] = meta.get("backward_kl", [])
+    else:
+        meta = dict(sir_accept=[], forward_kl=[], backward_kl=[])
+
+    point = start.clone()
+    point.requires_grad_(True)
+    point.grad = None
+
+    # hist_proposals = None
+
+    meta["logp"] = target.log_prob(point)  #
+    meta["logp"] = meta.get("logp", target.log_prob(point))
+
+    pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
+    for step_id in pbar:
+        logp_x = meta["logp"]
+        # logq_x = proposal.log_prob(point)
+
+        point, _, log_ps, log_qs, indices = isir_step(
+            point,
+            target,
+            proposal,
+            n_particles=n_particles,
+            # logp_x=logp_x,
+            # logq_x=logq_x,
+        )
+        logp_x = log_ps[np.arange(point.shape[0]), indices]
+        logq_x = log_qs[np.arange(point.shape[0]), indices]
+        meta["sir_accept"].append((indices != 0).float().mean().item())
+        point = point.detach().requires_grad_()
+        meta["logp"] = logp_x
+        meta["mask"] = (
+            F.one_hot(indices, num_classes=n_particles).to(bool).detach().cpu()
+        )
+        if n_mala_steps > 0:
+            points, meta = mala(
+                point,
+                target,
+                proposal.prior,
+                n_mala_steps,
+                n_mala_steps - 1,
+                project,
+                step_size=step_size,
+                target_acceptance=target_acceptance,
+                verbose=False,
+                meta=meta,
+            )
+            step_size = meta["step_size"][-1]
+            point = points[-1]
+
+        # meta.pop("logp")
+        # meta.pop("grad")
+
+        # if not keep_graph:
+        point = point.detach().requires_grad_()
+        if step_id >= burn_in:
+            chains.append(point.cpu().clone())
+
+        if proposal.optim.param_groups[0]["lr"] > 0:
+            logw = log_ps - log_qs
+            # KL(P | Q), MC with flow samples, Rao-Blackwellized
+            kl_forw = (
+                -(log_qs * torch.softmax(logw.detach(), dim=-1)).sum(axis=-1).mean()
+            )
+            # KL(Q | P), MC with current flow samples
+            kl_back = -logw[:, 1:].mean()
+
+            loss = forward_kl_weight * kl_forw + backward_kl_weight * kl_back
+
+            proposal.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(proposal.parameters(), 1.0)
+            proposal.optim.step()
+            proposal.scheduler.step()
+
+            meta["forward_kl"].append(kl_forw.item())
+            meta["backward_kl"].append(kl_back.item())
+
+            if verbose:
+                pbar.set_description(
+                    f"KL forw {kl_forw.item():.3f}, \
+                     KL back {kl_back.item():.3f} "  # Hentr {entr.item():.3f}"
                 )
-                for _ in range(2 * num_blocks)
-            ]
+
+    chains = torch.stack(chains, 0)
+
+    return chains, meta
+
+
+@MCMCRegistry.register()
+def hmc(
+    start: torch.FloatTensor,
+    target: Union[Distribution, torchDist],
+    proposal: Union[Distribution, torchDist],
+    n_samples: int,
+    burn_in: int,
+    project: Callable = lambda x: x,
+    *,
+    step_size: float,
+    leapfrog_steps: int = 1,
+    target_acceptance: float = False,
+    adapt_step_size: bool = False,
+    verbose: bool = False,
+    meta: Optional[Dict] = None,
+):
+    meta = meta or dict()
+    meta["step_size"] = meta.get("step_size", [])
+    if "hmc_kernel" not in meta:
+        kernel = HMC(
+            potential_fn=lambda x: -target.log_prob(x["points"]),
+            full_mass=False,
+            step_size=step_size,
+            num_steps=leapfrog_steps,
+            adapt_step_size=adapt_step_size,
+            target_accept_prob=target_acceptance,
         )
-        self.s = torch.nn.ModuleList(
-            [
-                nn.Sequential(
-                    nn.Linear(lat_size, hidden),
-                    nn.LeakyReLU(),
-                    nn.Linear(hidden, hidden),
-                    nn.LeakyReLU(),
-                    nn.Linear(hidden, lat_size),
-                    nn.Tanh(),
-                )
-                for _ in range(2 * num_blocks)
-            ]
-        )
+        meta["hmc_kernel"] = kernel
 
-    def g_flatten(self, z):
-        log_det_J_inv, x = z.new_zeros(z.shape[0]), z
-        for i in range(len(self.t)):
-            x_ = x * self.masks[i]
-            s = self.s[i](x_) * (1 - self.masks[i])
-            t = self.t[i](x_) * (1 - self.masks[i])
-            x = x_ + (1 - self.masks[i]) * (x * torch.exp(s) + t)
+    x = start.clone()
+    x.requires_grad_(False)
+    x.grad = None
 
-            log_det_J_inv += s.sum(dim=1)
-        return x, log_det_J_inv
-
-    def g(self, z):
-        lat_size = z.shape[-1]
-        first_dims = z.shape[:-1]
-
-        x, log_det_J_inv = self.g_flatten(z.reshape(-1, lat_size))
-        x = x.reshape(*z.shape)
-        log_det_J_inv = log_det_J_inv.reshape(*first_dims)
-
-        return x, log_det_J_inv
-
-    def f_flatten(self, x):
-        log_det_J, z = x.new_zeros(x.shape[0]), x
-        for i in reversed(range(len(self.t))):
-            z_ = self.masks[i] * z
-            s = self.s[i](z_) * (1 - self.masks[i])
-            t = self.t[i](z_) * (1 - self.masks[i])
-            z = (1 - self.masks[i]) * (z - t) * torch.exp(-s) + z_
-            log_det_J -= s.sum(dim=1)
-        return z, log_det_J
-
-    def f(self, x):
-        lat_size = x.shape[-1]
-        first_dims = x.shape[:-1]
-
-        z, log_det_J = self.f_flatten(x.reshape(-1, lat_size))
-        z = z.reshape(*x.shape)
-        log_det_J = log_det_J.reshape(*first_dims)
-
-        return z, log_det_J
-
-    def log_prob(self, x):
-        z, logp = self.f(x)
-        return self.prior.log_prob(z) + logp
-
-    def sample(self, num_samples):
-        if isinstance(num_samples, int):
-            num_samples = (num_samples,)
-        z = self.prior.sample(num_samples)
-        x = self.g(z)[0]
-        return x
-
-
-# Samplers
-
-
-# NUTS
-def sample_nuts(target, num_samples=1000, burn_in=1000, batch_size=1, lat_size=100):
-    def true_target_energy(z):
-        return target(z)
-
-    def energy(z):
-        z = z["points"]
-        return true_target_energy(z)
-
-    # kernel = HMC(potential_fn=energy, step_size = 0.1, num_steps = K, full_mass = False)
-    kernel_true = NUTS(potential_fn=energy, full_mass=False)
-    # kernel_true = HMC(potential_fn=energy, full_mass=False)
-    # pyro.set_rng_seed(45)
-    init_samples = torch.FloatTensor(np.random.randn(batch_size, lat_size))
-    print(init_samples.shape)
-    # init_samples = torch.zeros_like(init_samples)
-    dim = init_samples.shape[-1]
-    init_params = {"points": init_samples}
-    mcmc_true = MCMC(
-        kernel=kernel_true,
-        num_samples=num_samples,
+    init_params = {"points": x}
+    mcmc = MCMC(
+        kernel=meta["hmc_kernel"],
+        num_samples=n_samples,
         initial_params=init_params,
         warmup_steps=burn_in,
     )
-    mcmc_true.run()
+    mcmc.run()
+    meta["step_size"].append(meta["hmc_kernel"].step_size)
 
-    q_true = mcmc_true.get_samples(group_by_chain=True)["points"]
-    samples_true = np.array(q_true.view(-1, batch_size, dim))
+    chains = mcmc.get_samples(group_by_chain=True)["points"]
+    chains = chains.view(-1, *start.shape)
 
-    return samples_true
-
-
-# MALA
-def grad_log_and_output_target_dens(log_target_dens, z):
-    """
-    returns the gradient of log-density
-    """
-    inp = z.clone().detach()
-    inp.requires_grad_(True)
-
-    output = log_target_dens(inp, detach=False)
-    output.sum().backward()
-
-    grad = inp.grad.data.detach()
-
-    return grad, output.data.detach()
-
-
-def mala_step(log_target_dens, x0, gamma, mala_iters, stats=None):
-    """
-    function to perform mala_iters times MALA step
-    """
-    N_samples, lat_size = x0.shape
-    device = x0.device
-
-    # generate proposals
-    x_cur = x0
-    for i in range(mala_iters):
-        x_cur_grad, x_cur_log_target = grad_log_and_output_target_dens(
-            log_target_dens, x_cur
-        )
-        x_cur_proposal = MultivariateNormal(
-            x_cur + gamma * x_cur_grad,
-            2
-            * gamma
-            * torch.eye(lat_size)[None, :, :].repeat(N_samples, 1, 1).to(device),
-        )
-
-        x_next = x_cur_proposal.sample()
-
-        x_next_grad, x_next_log_target = grad_log_and_output_target_dens(
-            log_target_dens, x_next
-        )
-        x_next_proposal = MultivariateNormal(
-            x_next + gamma * x_next_grad,
-            2
-            * gamma
-            * torch.eye(lat_size)[None, :, :].repeat(N_samples, 1, 1).to(device),
-        )
-
-        # compute accept-reject
-        log_prob_accept = (
-            x_next_log_target
-            + x_next_proposal.log_prob(x_cur)
-            - x_cur_log_target
-            - x_cur_proposal.log_prob(x_next)
-        )
-        log_prob_accept = torch.clamp(log_prob_accept, max=0.0)
-
-        # generate uniform distribution
-        trhd = torch.log(torch.rand(N_samples).to(device))
-        # accept-reject indicator
-        indic_acc = (log_prob_accept > trhd).float()
-
-        indic_acc = indic_acc[:, None]
-
-        if stats is not None:
-            stats["n_accepts"] += indic_acc.sum().item()
-
-        x_cur = indic_acc * x_next + (1 - indic_acc) * x_cur
-    return x_cur.detach()
-
-
-def mala(log_target_dens, x0, N_steps, gamma, mala_iters, stats=None, seed=42):
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    ### sample i-sir
-
-    samples_traj = [x0]
-    x_cur = x0
-
-    for _ in tqdm.tqdm(range(N_steps)):
-        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
-        samples_traj.append(x_cur)
-
-    samples_traj = torch.stack(samples_traj).transpose(0, 1)
-
-    return samples_traj
-
-
-# I-SIR
-def i_sir_step(log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=False):
-    """
-    function to sample with N-particles version of i-SIR
-    args:
-        N_part - number of particles, integer;
-        x0 - current i-sir particle;
-    return:
-        x_next - selected i-sir particle
-    """
-    N_samples, lat_size = x_cur.shape
-
-    # generate proposals
-    proposals = isir_proposal.sample(
-        (
-            N_samples,
-            N_part - 1,
-        )
-    )
-
-    # put current particles
-    proposals = torch.cat((x_cur[:, None, :], proposals), dim=1)
-
-    # compute importance weights
-    log_target_dens_proposals = log_target_dens(
-        proposals.reshape(-1, lat_size)
-    ).reshape(N_samples, N_part)
-
-    logw = log_target_dens_proposals - isir_proposal.log_prob(proposals)
-
-    # sample selected particle indexes
-    idxs = Categorical(logits=logw).sample()
-
-    cur_x = proposals[torch.arange(N_samples), idxs]
-
-    cur_x = cur_x.detach()
-    proposals = proposals.detach()
-    log_target_dens_proposals = log_target_dens_proposals.detach()
-
-    if return_all_stats:
-        return cur_x, proposals, log_target_dens_proposals
-    else:
-        return cur_x
-
-
-def mh_step(log_target_dens, x_cur, mh_proposal):
-    """
-    function to sample with N-particles version of i-SIR
-    args:
-        N_part - number of particles, integer;
-        x0 - current i-sir particle;
-    return:
-        x_next - selected i-sir particle
-    """
-    N_samples, lat_size = x_cur.shape
-    device = x_cur.device
-    # generate proposals
-    proposals = mh_proposal.sample((N_samples,))
-    # put current particles
-    log_target_cur = log_target_dens(x_cur)
-    log_target_proposal = log_target_dens(proposals)
-    # compute proposal density
-    log_prop_cur = mh_proposal.log_prob(x_cur)
-    log_prop_prop = mh_proposal.log_prob(proposals)
-    # print(log_target_cur.shape,log_target_proposal.shape,log_prop_cur.shape,log_prop_prop.shape)
-    # compute acceptance ratio
-    log_prob_accept = (
-        log_target_proposal + log_prop_cur - log_prop_prop - log_target_cur
-    )
-    log_prob_accept = torch.clamp(log_prob_accept, max=0.0)
-    # generate uniform distribution
-    trhd = torch.log(torch.rand(N_samples).to(device))
-    # accept-reject indicator
-    indic_acc = (log_prob_accept > trhd).float()
-    indic_acc = indic_acc[:, None]
-    cur_x = indic_acc * proposals + (1 - indic_acc) * x_cur
-    return cur_x.detach()
-
-
-def i_sir(log_target_dens, x0, N_steps, N_part, isir_proposal, seed=42):
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    ### sample i-sir
-
-    samples_traj = [x0]
-    x_cur = x0
-
-    for _ in tqdm.tqdm(range(N_steps)):
-        x_cur = i_sir_step(log_target_dens, x_cur, N_part, isir_proposal)
-        samples_traj.append(x_cur)
-
-    samples_traj = torch.stack(samples_traj).transpose(0, 1)
-
-    return samples_traj
-
-
-# Ex2MCMC
-def ex2_mcmc(
-    log_target_dens,
-    x0,
-    N_steps,
-    N_part,
-    isir_proposal,
-    gamma,
-    mala_iters,
-    stats=None,
-    seed=42,
-):
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    ### sample i-sir
-
-    samples_traj = [x0]
-    x_cur = x0
-
-    for _ in tqdm.tqdm(range(N_steps)):
-        x_cur = i_sir_step(log_target_dens, x_cur, N_part, isir_proposal)
-        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
-        samples_traj.append(x_cur)
-
-    samples_traj = torch.stack(samples_traj).transpose(0, 1)
-
-    return samples_traj
-
-
-def flex2_mcmc(
-    log_target_dens,
-    x0,
-    N_steps,
-    N_part,
-    isir_proposal,
-    gamma,
-    mala_iters,
-    alpha=1.0,
-    stats=None,
-    seed=42,
-):
-    """
-    Function to perform Flex2MCMC by optimizing alpha * KL_FW + (1-alpha)*KL_BACK
-    """
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    ### sample i-sir
-    samples_traj = [x0]
-    x_cur = x0
-    proposal_opt = torch.optim.Adam(isir_proposal.parameters(), lr=1e-3)
-
-    pbar = tqdm.tqdm(range(N_steps))
-
-    hist_proposals = None
-    hist_log_target_dens_proposals = None
-
-    for _ in pbar:
-        x_cur, proposals, log_target_dens_proposals = i_sir_step(
-            log_target_dens, x_cur, N_part, isir_proposal, return_all_stats=True
-        )
-        # train proposal
-        proposal_opt.zero_grad()
-        population_log_proposal_prob = isir_proposal.log_prob(proposals)
-        logw = (log_target_dens_proposals - population_log_proposal_prob).detach()
-
-        kl_forw = -(
-            (population_log_proposal_prob * torch.softmax(logw, dim=-1)).sum(axis=-1)
-        ).mean()
-
-        # backward KL
-        cur_samples_x = proposals[:, 1:, :].reshape(-1, proposals.shape[-1])
-        cur_samples_z, log_det_J = isir_proposal.f(cur_samples_x)
-
-        cur_samples_x_diff = isir_proposal.g(cur_samples_z.detach())[0]
-        log_target_dens_proposals_diff = log_target_dens(
-            cur_samples_x_diff, detach=False
-        )
-
-        kl_back = -(log_target_dens_proposals_diff - log_det_J).mean()
-
-        # opt step
-        loss = alpha * kl_forw + (1 - alpha) * kl_back  # + 0.1 * e
-        loss.backward()
-        proposal_opt.step()
-
-        # perform MALA update
-        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
-        samples_traj.append(x_cur)
-
-        pbar.set_description(
-            f"KL forw {kl_forw.item()}, KL back {kl_back.item()}"
-        )  # Hentr {e.item()}")
-        # if hist_proposals is None:
-        #    hist_proposals = proposals_flattened
-        #    hist_log_target_dens_proposals = log_target_dens_proposals_flattened
-        # else:
-        #    hist_proposals = torch.cat((hist_proposals, proposals_flattened), dim=0)
-        #    hist_log_target_dens_proposals = torch.cat((hist_log_target_dens_proposals, log_target_dens_proposals_flattened), dim=0)
-    samples_traj = torch.stack(samples_traj).transpose(0, 1)
-    return samples_traj
-
-
-def flex2_mcmc_imh(
-    log_target_dens,
-    x0,
-    N_steps,
-    N_part,
-    mh_proposal,
-    gamma,
-    mala_iters,
-    alpha=1.0,
-    add_pop_size_train=4096,
-    stats=None,
-    seed=42,
-):
-    """
-    Function to perform Flex2MCMC with IMH steps by optimizing alpha * KL_FW + (1-alpha)*KL_BACK
-    """
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    ### sample i-sir
-    samples_traj = [x0]
-    x_cur = x0
-    proposal_opt = torch.optim.Adam(mh_proposal.parameters(), lr=1e-3)
-
-    pbar = tqdm.tqdm(range(N_steps))
-
-    hist_proposals = None
-    hist_log_target_dens_proposals = None
-
-    for _ in pbar:
-        x_cur = mh_step(log_target_dens, x_cur, mh_proposal)
-        # forward KL
-        log_proposal_prob = mh_proposal.log_prob(x_cur)
-        log_proposal_prob_flattened = log_proposal_prob.reshape(-1)
-        # if hist_proposals is not None:
-        #    idxs = np.random.permutation(hist_proposals.shape[0])[:add_pop_size_train]
-        #    population_proposals = torch.cat((population_proposals, hist_proposals[idxs]))
-        #    population_log_target_dens_proposals = torch.cat((population_log_target_dens_proposals, hist_log_target_dens_proposals[idxs]))
-        kl_forw = -log_proposal_prob_flattened.mean()
-        # backward KL
-        N_samples, lat_size = x_cur.shape
-        cur_samples_x = mh_proposal.sample(
-            (
-                N_steps,
-                N_part,
-            )
-        ).reshape(-1, lat_size)
-        cur_samples_z, log_det_J = mh_proposal.f(cur_samples_x)
-
-        cur_samples_x_diff = mh_proposal.g(cur_samples_z.detach())[0]
-        log_target_dens_proposals_diff = log_target_dens(
-            cur_samples_x_diff, detach=False
-        )
-
-        kl_back = -(log_target_dens_proposals_diff - log_det_J).mean()
-
-        # entropy reg
-        # e = -isir_proposal.log_prob(torch.randn_like(proposals_flattened)).mean()
-
-        # opt step
-        loss = alpha * kl_forw + (1 - alpha) * kl_back  # + 0.1 * e
-        loss.backward()
-        proposal_opt.step()
-
-        # perform MALA update
-        x_cur = mala_step(log_target_dens, x_cur, gamma, mala_iters, stats=stats)
-        samples_traj.append(x_cur)
-
-        pbar.set_description(
-            f"KL forw {kl_forw.item()}, KL back {kl_back.item()}"
-        )  # Hentr {e.item()}")
-
-    samples_traj = torch.stack(samples_traj).transpose(0, 1)
-    return samples_traj
+    return chains, meta

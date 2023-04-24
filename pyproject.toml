@@ -1,12 +1,19 @@
 [tool.poetry]
 name = "ex2mcmc"
-version = "0.0.2"
+version = "0.0.1"
 description = "Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022)"
-authors = ["Sergey Samsonov", "Evgeny Lagutin", "Marylou Gabrié", "Alain Durmus", "Alexey Naumov", "Eric Moulines"]
+authors = [
+    "Sergey Samsonov <svsamsonov@hse.ru>", "Evgeny Lagutin <lagutin.em@phystech.edu>", 
+    "Marylou Gabrié", "Alain Durmus", "Alexey Naumov", "Eric Moulines"
+    ]
+maintainers = [
+    "Sergey Samsonov <svsamsonov@hse.ru>", "Evgeny Lagutin <lagutin.em@phystech.edu>"
+]
 readme = "README.md"
 repository = "http://github.com/svsamsonov/ex2mcmc_new.git"
-documentation = "TBD"
+documentation = "http://github.com/svsamsonov/ex2mcmc_new/blob/master/README.md"
 license = "MIT"
+keywords = ["mcmc", "adaptive mcmc", "ex2mcmc", ""]
 
 [tool.black]
 target-version = ["py38"]
@@ -29,7 +36,9 @@ exclude = '''
 
 [tool.poetry.dependencies]
 python = "~3.8"
-torch-mimicry = {git = "https://github.com/kwotsin/mimicry.git", rev = "a7fda06c4aff1e6af8dc4c4a35ed6636e434c766"}
+torch = "^2.0.0"
+torchvision = "*"
+tensorflow = "~2.11.1"
 black = {extras = ["jupyter"], version = "^23.3.0"}
 isort = "^5.12.0"
 flake8 = "5.0.4"
@@ -38,7 +47,6 @@ ipython = "^8.11.0"
 seaborn = "^0.12.2"
 jupyter = "^1.0.0"
 ruamel-yaml = "^0.17.21"
-munch = "^2.5.0"
 pre-commit = "^3.1.1"
 pyro-ppl = "^1.8.4"
 pot = "^0.9.0"
@@ -46,10 +54,7 @@ easydict = "^1.10"
 jaxlib = "^0.4.7"
 jax = "^0.4.8"
 gdown = "^4.7.1"
-wandb = "^0.14.2"
-vulture = "^2.7"
 docker = "^6.0.1"
-toml = "^0.10.2"
 
 [tool.isort]
 src_paths = ["."]
@@ -60,7 +65,9 @@ use_parentheses = true
 line_length = 88
 lines_after_imports = 2
 skip_glob = 'thirdparty'
-known_third_party = ["PIL", "gdown", "imageio", "matplotlib", "numpy", "ruamel", "scipy", "seaborn", "skimage", "sklearn", "tensorflow", "torch", "torchvision",  "torch_mimicry"]
+known_third_party = ["PIL", "gdown", "imageio", "matplotlib", "numpy", "ruamel", "scipy", "seaborn", 
+    "skimage", "sklearn", "tensorflow", "torch", "torchvision",  "torch_mimicry"
+    ]
 
 [tool.flake8]
 min_python_version = "3.8.0"

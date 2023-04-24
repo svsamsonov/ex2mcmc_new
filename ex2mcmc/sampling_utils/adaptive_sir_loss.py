@@ -1,5 +1,3 @@
-from re import M
-
 import torch
 from torch import nn
 
@@ -22,61 +20,29 @@ def get_loss(loss):
         raise NotImplementedError
 
 
-# Write here f divergence
-
-
 def entropy(target, proposal, flow, y, acc_rate=1.0):
     u = proposal.sample(y.shape[:-1])
-    x, log_jac = flow(u)
-
-    entr = -proposal(u) + log_jac
-
+    x, log_jac = flow.inverse(u)
+    entr = -proposal.log_prob(u) + log_jac
     entr = acc_rate * entr
     grad_est = entr
 
     return entr.mean(), grad_est.mean()
 
 
-# def log_likelihood
-
-
-def importance_forward_kl(target, proposal, flow, y, batch_size=10, N=10):
-    x = proposal.sample((batch_size, N))
-    x_ = x.view(-1, y.shape[-1])
-    log_weight = target(x_) - proposal(x_)
-
-    log_weight = log_weight.view(batch_size, N)
-    max_logs = torch.max(log_weight, dim=1)[0][:, None]
-    log_weight = log_weight - max_logs
-    weight = torch.exp(log_weight)
-    sum_weight = torch.sum(weight, dim=1)
-    weight = weight / sum_weight[:, None]
-
-    weight[weight != weight] = 0.0
-    weight[weight.sum(1) == 0.0] = 1.0
-
-    x_inv, minus_log_jac = flow.inverse(x.view(-1, y.shape[-1]))
-    # est = target(y) - proposal.log_prob(x_inv) - minus_log_jac
-    minus_log_q = -proposal(x_inv) - minus_log_jac
-    kl = (weight * minus_log_q.view(*weight.shape)).mean()
-    return kl, kl
-
-
-def forward_kl(target, proposal, flow, y):
-    # Here, y \sim \target
-    # PROPOSAL INITIAL DISTR HERE
-    y_ = y.detach().requires_grad_()
-    u, minus_log_jac = flow.inverse(y_)
-    est = target(y_) - proposal(u) - minus_log_jac
-    grad_est = -proposal(u) - minus_log_jac
+def forward_kl(target, proposal, flow, x):
+    x_ = x.detach().requires_grad_()
+    z, log_jac = flow.forward(x_)
+    est = target.log_prob(x_) - (proposal.log_prob(z) + log_jac)
+    grad_est = -proposal.log_prob(z) - log_jac
     return est.mean(), grad_est.mean()
 
 
-def backward_kl(target, proposal, flow, y):
-    u = proposal.sample(y.shape[:-1])
-    x, log_jac = flow(u)
-    est = proposal(u) - log_jac - target(x)
-    grad_est = -log_jac - target(x)
+def backward_kl(target, proposal, flow, x):
+    z = proposal.sample(x.shape[:-1])
+    x, log_jac_inv = flow.inverse(z)
+    est = proposal.log_prob(z) - log_jac_inv - target.log_prob(x)
+    grad_est = -log_jac_inv - target.log_prob(x)
     return est.mean(), grad_est.mean()
 
 
@@ -85,27 +51,18 @@ def mix_kl(
     proposal,
     flow,
     y,
-    acc_rate=1.0,
     alpha=0.99,
-    beta=0.1,
     gamma=None,
-):  # .2):
+):
     est_f, grad_est_f = forward_kl(target, proposal, flow, y)
     est_b, grad_est_b = backward_kl(target, proposal, flow, y)
-    # entr, grad_est_entr = entropy(target, proposal, flow, y, acc_rate=acc_rate)
-    imp_f, grad_imp_f = importance_forward_kl(target, proposal, flow, y)
 
     if torch.isnan(grad_est_b).item():
         grad_est_b = 0
 
-    if gamma is None:
-        gamma = alpha
-
     return (
-        alpha * est_f + (1.0 - alpha) * est_b + gamma * grad_imp_f,
-        # - beta * entr,
-        alpha * grad_est_f + (1.0 - alpha) * grad_est_b + gamma * grad_imp_f,
-        # - beta * grad_est_entr,
+        alpha * est_f + (1.0 - alpha) * est_b,
+        alpha * grad_est_f + (1.0 - alpha) * grad_est_b,
     )
 
 
@@ -137,8 +94,5 @@ class MixKLLoss(nn.Module):
             self.proposal,
             self.flow,
             y,
-            acc_rate=acc_rate,
             alpha=alpha,
-            beta=beta,
-            gamma=gamma,
         )

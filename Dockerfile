@@ -45,6 +45,7 @@ RUN echo "conda activate $PROJ" >> ~/.bashrc
 # RUN poetry env use $PROJ
 
 RUN poetry install
+RUN pip poetry add  
 
 RUN mkdir stats
 RUN gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifar10.npz

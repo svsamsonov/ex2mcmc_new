@@ -1,8 +1,10 @@
 import copy
 from dataclasses import dataclass
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import torch
 from sklearn import datasets, preprocessing
 from sklearn.ensemble import IsolationForest
 from sklearn.model_selection import train_test_split

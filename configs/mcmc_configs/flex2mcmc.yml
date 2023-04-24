@@ -11,7 +11,7 @@ mcmc_args: &mcmc_args
 flow:
   name: RNVP
   params:
-    num_flows: 5
+    num_blocks: 5
     dim: null
   opt_params:
     lr: 0.001 #003

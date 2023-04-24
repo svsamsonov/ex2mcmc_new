@@ -5,7 +5,7 @@ from torch import nn
 from torch.distributions import MultivariateNormal as MNormal
 
 
-class RealNVPProposal(nn.Module):
+class MinimalRNVP(nn.Module):
     def __init__(
         self,
         dim: int,
@@ -13,6 +13,7 @@ class RealNVPProposal(nn.Module):
         hidden: int = 32,
         num_blocks: int = 4,
         init_weight_scale: float = 1e-4,
+        scale: float = 1.0,
     ):
         self.init_weight_scale = init_weight_scale
         device = torch.device(device)
@@ -20,7 +21,7 @@ class RealNVPProposal(nn.Module):
 
         self.prior = MNormal(
             torch.zeros(dim, requires_grad=False).to(device),
-            torch.eye(dim, requires_grad=False).to(device),
+            scale**2 * torch.eye(dim, requires_grad=False).to(device),
         )
 
         masks = num_blocks * [
@@ -112,6 +113,6 @@ class RealNVPProposal(nn.Module):
 
     def sample(self, shape):
         z = self.prior.sample(shape).detach()
-        x, log_det_J_inv = self.inverse(z)
+        x, _ = self.inverse(z)
         # self.log_det_J_inv = log_det_J_inv
         return x

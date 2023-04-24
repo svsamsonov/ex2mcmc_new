@@ -1,14 +1,4 @@
-import torch
 from torch import nn
-
-
-# def weights_init_normal(m):
-#     classname = m.__class__.__name__
-#     if classname.find("Conv") != -1:
-#         torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
-#     elif classname.find("BatchNorm2d") != -1:
-#         torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
-#         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
 class GeneratorMNIST(nn.Module):
@@ -72,7 +62,7 @@ class DiscriminatorMNIST(nn.Module):
         )
 
         # The height and width of downsampled image
-        ds_size = img_size // 2**4
+        # ds_size = img_size // 2**4
         self.adv_layer = nn.Sequential(nn.Linear(512, 1, bias=not wgan_cp))
 
     def forward(self, img, foo=None):

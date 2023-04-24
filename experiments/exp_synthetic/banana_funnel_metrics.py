@@ -259,7 +259,7 @@ def main(
                 "bernoulli_prob_corr": 0.0,
                 "mala_steps": 0,
                 "flow": {
-                    "num_flows": 4,  # number of normalizing layers
+                    "num_blocks": 4,  # number of normalizing layers
                     "lr": 1e-3,  # learning rate
                     "batch_size": 100,
                     "n_steps": 1000,
@@ -270,7 +270,7 @@ def main(
             mcmc = Ex2MCMC(**params_flex, dim=dim)
             verbose = mcmc.verbose
             mcmc.verbose = False
-            flow = RNVP(params_flex["flow"]["num_flows"], dim=dim, device=device)
+            flow = RNVP(params_flex["flow"]["num_blocks"], dim=dim, device=device)
             flow_mcmc = FlowMCMC(
                 target,
                 proposal,

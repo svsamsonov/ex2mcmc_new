@@ -338,13 +338,10 @@ class Funnel(Distribution):
         self.scale_2d_log_prob = 20  # 30.0
 
     def log_prob(self, z, x=None):
-        # pdb.set_trace()
         logprob1 = self.distr1.log_prob(z[..., 0])
         z1 = z[..., 0]
-        # logprob2 = self.distr2(z[...,0])
         logprob2 = (
             -0.5 * (z[..., 1:] ** 2).sum(-1) * torch.exp(-2 * self.b * z1)
-            #    - np.log(self.dim)
             - (self.dim - 1) * self.b * z1
         )
         return logprob1 + logprob2
@@ -361,6 +358,24 @@ class Funnel(Distribution):
         # else:
         #     logprob2 = -(z[...,dim2]**2) * (-2*self.b*z1).exp() - np.log(self.dim) + 2*self.b*z1
         return logprob1 + logprob2
+
+    def plot_2d_countour(self, ax):
+        x = np.linspace(-15, 15, 100)
+        y = np.linspace(-10, 10, 100)
+        X, Y = np.meshgrid(x, y)
+        inp = torch.from_numpy(np.stack([X, Y], -1))
+        Z = self.log_prob(inp.reshape(-1, 2)).reshape(inp.shape[:-1])
+
+        # levels = np.quantile(Z, np.linspace(0.9, 0.99, 5))
+        ax.contour(
+            X,
+            Y,
+            Z.exp(),
+            # levels = levels,
+            levels=3,
+            alpha=1.0,
+            cmap="inferno",
+        )
 
     def plot_2d(self, fig=None, ax=None):
         if fig is None and ax is None:

@@ -12,13 +12,11 @@ from .mcmc_base import AbstractMCMC, adapt_stepsize_dec, increment_steps
 def grad_energy(point, target, x=None):
     point = point.detach().requires_grad_()
     if x is not None:
-        energy = -target(z=point, x=x)
+        energy = -target.log_prob(z=point, x=x)
     else:
-        energy = -target(point)
+        energy = -target.log_prob(point)
 
     grad = torch.autograd.grad(energy.sum(), point)[0]
-    # very strangely last vector in batch produces wrong gradient !
-    # grad = torch.clamp(grad, -1e3, 1e3)
     return energy, grad
 
 

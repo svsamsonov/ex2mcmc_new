@@ -1,6 +1,7 @@
 # Packages
 from dataclasses import dataclass
 from pathlib import Path
+
 import torch
 
 from .logistic_regression import import_csv_dataset

@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-import ruamel.yaml as yaml
 import seaborn as sns
 from matplotlib import pyplot as plt
 
@@ -225,7 +224,6 @@ def plot_res(log_path, config, arange):
         )
 
         plt.xlabel("Iteration")
-        # plt.ylabel(r'$\hat{\mathbb{E}}_{\pi_{\theta}}\Vert F(G(z)))-\pi_{data}(F)\Vert$')
         plt.ylabel(r"$\langle \theta, F(G(z)) \rangle + U(z)$")
         # plt.axhline(config.thermalize[False]['real_score'], linestyle='--', \
         # label='avg real score', color='r')
@@ -245,37 +243,3 @@ def parse_arguments():
     parser.add_argument("-m", "--model_pattern", dest="model_pattern", type=str)
     args = parser.parse_args()
     return args
-
-
-# def main(args):
-#     if args.logdir:
-#         logdir = Path(args.logdir)
-#         if not logdir.is_dir():
-#             raise ValueError
-#         logs = [logdir]
-#     else:
-#         logdir = Path(ROOT_DIR, "log", f"{args.feature}_feature_{args.target}Target")
-#         logs = list(logdir.glob(args.model_pattern))
-
-#     for gan_logpath in logs:
-#         configs = list(gan_logpath.glob("*.yml"))
-#         config_path = configs[0] if configs[1].stem == "gan_config" else configs[1]
-#         gan_config_path = configs[1] if configs[1].stem == "gan_config" else configs[0]
-#         print(config_path.stem)
-
-#         Path(gan_logpath, "figs").mkdir(exist_ok=True)
-#         config = DotConfig(yaml.round_trip_load(config_path.open("r")))
-#         n_steps = config.n_steps
-#         every = config.every
-
-#         gan_config = DotConfig(
-#             yaml.round_trip_load(gan_config_path.open("r"))["gan_config"]
-#         )
-
-#         arange = np.arange(0, n_steps + 1, every)
-#         plot_res(gan_logpath, gan_config, arange)
-
-
-# if __name__ == "__main__":
-#     args = parse_arguments()
-#     main(args)

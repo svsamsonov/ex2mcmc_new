@@ -24,7 +24,7 @@ gan_config:
       mean: &mean [0.5, 0.5, 0.5]
       std: &std [0.5, 0.5, 0.5]
   prior: normal
-  eval: true
+  eval: false #true
   generator:
     name: MMCSNGenerator
     params:

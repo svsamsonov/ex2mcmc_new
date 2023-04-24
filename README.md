@@ -14,6 +14,8 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
   - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
   - [Algorithms](#algorithms)
   - [Installation](#installation)
+    - [Developement installation](#developement-installation)
+    - [Download checkpoints and stats](#download-checkpoints-and-stats)
   - [Usage](#usage)
     - [Demonstration on SNGAN](#demonstration-on-sngan)
     - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
@@ -59,6 +61,13 @@ conda create -n ex2mcmc python=3.8
 conda activate ex2mcmc
 ```
 
+```bash
+pip install ex2mcmc==0.0.1
+pip install git+https://github.com/kwotsin/mimicry.git
+```
+
+### Developement installation
+
 Install poetry (if absent):
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
@@ -68,18 +77,19 @@ poetry config virtualenvs.create false
 Install the project:
 ```bash
 poetry install
+poetry add git+https://github.com/kwotsin/mimicry.git@a7fda06c4aff1e6af8dc4c4a35ed6636e434c766
 ```
 
-Download checkpoints:
+### Download checkpoints and stats
 
-CIFAR10:
+CIFAR10 checkpoints:
 
 | GAN   |     Steps     |  Path, G |  Path, D |
 |:----------|:-------------:|:------:|:------:|
 | DCGAN NS  | 100k      |   [netG_100000_steps.pth](https://drive.google.com/file/d/1gv8_qr_xa8hJzdJpBXiKr8v922EqcE-E/view?usp=share_link) |   [netD_100000_steps.pth](https://drive.google.com/file/d/1u1sPUmlvyhcbNDX2DVsR-mGOzqQ6U8sh/view?usp=share_link) |
 | SNGAN, Hinge  | 100k      |   [netG.pth](https://drive.google.com/file/d/118zC_iEkN27jGLVNmDuQpMeyw7BKOUra/view?usp=share_link) |   [netD.pth](https://drive.google.com/file/d/1xU5FV59TLhAlkFubJGmJVS87HnZZ2xHT/view?usp=share_link) |
 
-MNIST:
+MNIST checkpoints:
 
 | GAN      |  Path |
 |:----------|:-------------:|
@@ -108,6 +118,11 @@ mkdir -p stats & gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifa
 Try with colab:  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EQQ_OdwCLn5MsOzlG-GS7yNcjTBU-KMp?usp=sharing)
 
  ### Experiments with synthetic distributions:
+
+FlEx<sup>2</sup>MCMC  vs     NUTS:
+
+<img src="./imgs/flex_mog.png" alt="FlEx<sup>2</sup>MCMC" width="600"/> <img src="./imgs/nuts_mog.png" alt="NUTS" width="425"/>
+
   
 | Experiment | Path | Colab |
 |:----------|:-------|:-----:|

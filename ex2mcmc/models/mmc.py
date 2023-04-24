@@ -41,8 +41,8 @@ class MMCDCDiscriminator(BaseDiscriminator):
 
     def forward(self, x):
         return self.dis(x)
-    
-    
+
+
 @ModelRegistry.register()
 class MMCSNGenerator(BaseGenerator):
     def __init__(

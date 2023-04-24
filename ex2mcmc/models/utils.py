@@ -1,8 +1,10 @@
 from pathlib import Path
+
 import torch
 from torch import nn
 
 from ex2mcmc.utils.general_utils import DotConfig
+
 from .base import MemoryModel, ModelRegistry
 
 
@@ -91,7 +93,7 @@ class GANWrapper:
 
     def load_weights(self):
         from ex2mcmc.utils.general_utils import PROJECT_PATH
-        
+
         gen_path = Path(PROJECT_PATH, self.config.generator.ckpt_path)
         # if not gen_path.exists():
         #     subprocess.run(["dvc pull", gen_path.parent])

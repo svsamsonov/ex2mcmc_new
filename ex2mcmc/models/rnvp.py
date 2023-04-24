@@ -165,14 +165,16 @@ class DenseNN(ConditionalDenseNN):
 class RNVP(nn.Module):
     def __init__(
         self,
-        num_flows: int,
+        num_blocks: int,
         dim: int,
         flows: Optional[Iterable] = None,
         init_weight_scale: float = 1e-4,
         device: Union[str, int, torch.device] = 0,
+        scale: float = 1.0,
     ):
         super().__init__()
         self.init_weight_scale = init_weight_scale
+        self.x = None
         split_dim = dim // 2
         param_dims = [dim - split_dim, dim - split_dim]
         if flows is not None:
@@ -189,7 +191,7 @@ class RNVP(nn.Module):
                             param_dims,
                         ),
                     )
-                    for _ in range(num_flows)
+                    for _ in range(num_blocks)
                 ],
             )
             self.init_params(self.parameters())
@@ -211,7 +213,9 @@ class RNVP(nn.Module):
             torch.tensor(reverse_oe, dtype=torch.int64),
         )
 
-        self.prior = MNormal(torch.zeros(dim).to(device), torch.eye(dim).to(device))
+        self.prior = MNormal(
+            torch.zeros(dim).to(device), scale**2 * torch.eye(dim).to(device)
+        )
         self.to(device)
 
     def init_params(self, params):
@@ -235,42 +239,52 @@ class RNVP(nn.Module):
     def permute(self, z, i, reverse=False):
         if not reverse:
             if i % 2 == 0:
-                z = torch.index_select(z, 1, self.eo)
+                z = torch.index_select(z, -1, self.eo)
             else:
-                z = torch.index_select(z, 1, self.oe)
+                z = torch.index_select(z, -1, self.oe)
         else:
             if i % 2 == 0:
-                z = torch.index_select(z, 1, self.reverse_eo)
+                z = torch.index_select(z, -1, self.reverse_eo)
             else:
-                z = torch.index_select(z, 1, self.reverse_oe)
+                z = torch.index_select(z, -1, self.reverse_oe)
         return z
 
-    def forward(self, z):
-        log_jacob = torch.zeros_like(z[:, 0], dtype=torch.float32)
+    def forward(self, x):
+        log_jacob = torch.zeros_like(x[..., 0], dtype=torch.float32)
         for i, current_flow in enumerate(self.flow):
-            z = self.permute(z, i)
-            z_new = current_flow(z)
-            log_jacob += current_flow.log_abs_det_jacobian(z, z_new)
-            z_new = self.permute(z_new, i, reverse=True)
-            z = z_new
+            x = self.permute(x, i)
+            z = current_flow(x)
+            log_jacob += current_flow.log_abs_det_jacobian(x, z)  # z, z_new)
+            z = self.permute(z, i, reverse=True)
+            x = z
         return z, log_jacob
 
     def inverse(self, z):
-        log_jacob = torch.zeros_like(z[:, 0], dtype=torch.float32)
+        log_jacob_inv = torch.zeros_like(z[..., 0], dtype=torch.float32)
         n = len(self.flow) - 1
         for i, current_flow in enumerate(self.flow[::-1]):
             z = self.permute(z, n - i)
-            z_new = current_flow._inverse(z)
-            log_jacob -= current_flow.log_abs_det_jacobian(z_new, z)
-            z_new = self.permute(z_new, n - i, reverse=True)
-            z = z_new
-        return z, log_jacob
+            x = current_flow._inverse(z)
+            log_jacob_inv -= current_flow.log_abs_det_jacobian(x, z)
+            x = self.permute(x, n - i, reverse=True)
+            z = x
+        return x, log_jacob_inv.reshape(z.shape[:-1])
 
     def log_prob(self, x):
-        z, logp = self.forward(x)
+        if self.x is not None and torch.equal(self.x, x):
+            z, logp = self.z, self.log_jacob
+        else:
+            z, logp = self.forward(x)
         return self.prior.log_prob(z) + logp
 
+    # def log_prob(self, x):
+    #     z, logp = self.inverse(x)
+    #     return self.prior.log_prob(z) + logp
+
     def sample(self, shape):
-        z = self.prior.sample(shape).detach()
-        x, _ = self.inverse(z)
+        z = self.prior.sample(shape)
+        x, log_jacob_inv = self.inverse(z)
+        self.log_jacob = -log_jacob_inv
+        self.x = x
+        self.z = z
         return x
