@@ -112,8 +112,8 @@ def compute_metrics(
 
 def main(
     target_distributions,
-    True_samples,
-    sterp_sizes,
+    all_true_samples,
+    step_sizes,
     scale_proposal,
     scale_isir,
     num_replications,
@@ -129,7 +129,7 @@ def main(
 
     for i in range(num_replications):
         for target, true_samples, step_size in zip(
-            target_distributions, true_samples, sterp_sizes
+            target_distributions, all_true_samples, step_sizes
         ):
             loc_proposal = torch.zeros(target.dim).to(device)
             scale_proposal = scale_proposal * torch.ones(target.dim).to(device)
@@ -171,7 +171,7 @@ def main(
             )
             res_nuts["time"].append(time_cur)
             metrics = compute_metrics(
-                True_samples,
+                true_samples,
                 sample_nuts_ref,
                 name="NUTS",
                 trunc_chain_len=trunc_chain_len,
@@ -206,7 +206,7 @@ def main(
             end_time = time.time()
             res_mala["time"].append(end_time - start_time)
             metrics = compute_metrics(
-                True_samples,
+                true_samples,
                 sample,
                 name="MALA",
                 trunc_chain_len=trunc_chain_len,
@@ -241,7 +241,7 @@ def main(
             end_time = time.time()
             res_ex2["time"].append(end_time - start_time)
             metrics = compute_metrics(
-                True_samples,
+                true_samples,
                 sample,
                 name="Ex2MCMC",
                 trunc_chain_len=trunc_chain_len,
@@ -311,7 +311,7 @@ def main(
             end_time = time.time()
             res_adaptive_isir["time"].append(end_time - start_time)
             metrics = compute_metrics(
-                True_samples,
+                true_samples,
                 sample_flex2_new,
                 name="Flex2",
                 trunc_chain_len=trunc_chain_len,
@@ -340,7 +340,7 @@ def main(
                 end_train_time - start_time + end_flex_time - end_time
             )
             metrics = compute_metrics(
-                True_samples,
+                true_samples,
                 sample_flex2_new,
                 name="Flex2",
                 trunc_chain_len=trunc_chain_len,
@@ -385,7 +385,7 @@ if __name__ == "__main__":
 
     target_distributions = []
     step_sizes = []
-    true_samples = []
+    all_true_samples = []
 
     if args.distribution == "banana":
         dims = [20, 40, 60, 80, 100]
@@ -413,15 +413,15 @@ if __name__ == "__main__":
         N_samples = 5 * 10**3
 
         for dim in dims:
-            True_samples = np.random.randn(N_samples, dim)
+            true_samples = np.random.randn(N_samples, dim)
             for k in range(dim):
                 if k % 2 == 0:
-                    True_samples[:, k] *= sigma
+                    true_samples[:, k] *= sigma
                 else:
-                    True_samples[:, k] += (
-                        b * True_samples[:, k - 1] ** 2 - (sigma**2) * b
+                    true_samples[:, k] += (
+                        b * true_samples[:, k - 1] ** 2 - (sigma**2) * b
                     )
-            true_samples.append(True_samples)
+            all_true_samples.append(true_samples)
 
         mala_steps = 5
 
@@ -449,12 +449,12 @@ if __name__ == "__main__":
         N_samples = 5 * 10**3
 
         for dim in dims:
-            True_samples = np.random.randn(N_samples, dim)
-            True_samples[:, 0] *= a
+            true_samples = np.random.randn(N_samples, dim)
+            true_samples[:, 0] *= a
             for k in range(1, dim):
-                True_samples[:, k] *= np.exp(True_samples[:, 0] / 2)
+                true_samples[:, k] *= np.exp(true_samples[:, 0] / 2)
 
-            true_samples.append(True_samples)
+            all_true_samples.append(true_samples)
 
         mala_steps = 3
 
@@ -466,7 +466,7 @@ if __name__ == "__main__":
         scale_proposal,
         scale_isir,
         num_replications,
-        true_samples,
+        all_true_samples,
         log_dir,
         mala_steps,
     )

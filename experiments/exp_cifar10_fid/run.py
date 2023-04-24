@@ -325,11 +325,6 @@ def main(config: DotConfig, device: torch.device, group: str):
             # HACK
             if "gan" in params:
                 params["gan"] = gan
-            if "np_dataset" in params:
-                np_dataset = np.concatenate(
-                    [gan.inverse_transform(batch).numpy() for batch in dataloader], 0
-                )
-                params["np_dataset"] = np_dataset
             if "save_dir" in params:
                 params["save_dir"] = results_dir
             # if "modes" in params:
