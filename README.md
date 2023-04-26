@@ -1,6 +1,6 @@
 # Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
 
-![GitHub CI](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml/badge.svg?branch=master) 
+[![build](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml/badge.svg)](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml)
 
 <!-- [![HitCount](https://hits.dwyl.com/svsamsonov/ex2mcmc_new.svg)](https://hits.dwyl.com/svsamsonov/ex2mcmc_new) -->
 
