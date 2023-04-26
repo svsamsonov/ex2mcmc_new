@@ -3,6 +3,8 @@
 
 [![build](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml/badge.svg)](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml) 
 [![pypi](http://img.shields.io/pypi/v/ex2mcmc)](https://pypi.org/project/ex2mcmc/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/svsamsonov/ex2mcmc_new/blob/master/LICENSE)
+[![CodeFactor](https://www.codefactor.io/repository/github/svsamsonov/ex2mcmc_new/badge)](https://www.codefactor.io/repository/github/svsamsonov/ex2mcmc_new)
 
 
 <!-- [![HitCount](https://hits.dwyl.com/svsamsonov/ex2mcmc_new.svg)](https://hits.dwyl.com/svsamsonov/ex2mcmc_new) -->
