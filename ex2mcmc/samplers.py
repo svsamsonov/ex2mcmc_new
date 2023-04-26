@@ -376,7 +376,9 @@ def ex2mcmc(
     meta["step_size"] = meta.get("step_size", [])
 
     pbar = trange if verbose else range
+    
     meta["logp"] = meta.get("logp", target.log_prob(point))
+    
     for step_id in pbar(n_samples + burn_in):
         # points, meta = isir(
         #     point, target, proposal, 1, 0, project, n_particles=n_particles, meta=meta
@@ -404,7 +406,7 @@ def ex2mcmc(
         )
 
         points, meta = mala(
-            point,  # s[-1],
+            point,
             target,
             proposal,
             n_mala_steps,
@@ -441,7 +443,6 @@ def flex2mcmc(
     # add_pop_size_train: int = 200, #4096,
     forward_kl_weight: float = 1.0,
     backward_kl_weight: float = 1.0,
-    entr_weight: float = 0.1,
     target_acceptance: float = False,
     verbose: bool = False,
     meta: Optional[Dict] = None,
@@ -466,24 +467,23 @@ def flex2mcmc(
           acceptance rates for each iteration
     """
     chains = []
-    if meta:
-        meta["sir_accept"] = meta.get("sir_accept", [])
-        meta["forward_kl"] = meta.get("forward_kl", [])
-        meta["backward_kl"] = meta.get("backward_kl", [])
-    else:
-        meta = dict(sir_accept=[], forward_kl=[], backward_kl=[])
-
     point = start.clone()
     point.requires_grad_(True)
     point.grad = None
-
+    
+    meta = meta or dict()
+    meta["sir_accept"] = meta.get("sir_accept", [])
+    meta["forward_kl"] = meta.get("forward_kl", [])
+    meta["backward_kl"] = meta.get("backward_kl", [])
+    
+    pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
+    
     meta["logp"] = target.log_prob(point)  #
     # meta["logp"] = meta.get("logp", target.log_prob(point))
 
-    pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
     for step_id in pbar:
         logp_x = meta["logp"]
-        # logq_x = proposal.log_prob(point)
+        logq_x = proposal.log_prob(point)
 
         point, _, log_ps, log_qs, indices = isir_step(
             point,
@@ -491,10 +491,9 @@ def flex2mcmc(
             proposal,
             n_particles=n_particles,
             # logp_x=logp_x,
-            # logq_x=logq_x,
+            logq_x=logq_x,
         )
         logp_x = log_ps[np.arange(point.shape[0]), indices]
-        logq_x = log_qs[np.arange(point.shape[0]), indices]
         meta["sir_accept"].append((indices != 0).float().mean().item())
         point = point.detach().requires_grad_()
         meta["logp"] = logp_x
@@ -505,7 +504,7 @@ def flex2mcmc(
             points, meta = mala(
                 point,
                 target,
-                proposal.prior,
+                proposal,
                 n_mala_steps,
                 n_mala_steps - 1,
                 project,
@@ -552,7 +551,6 @@ def flex2mcmc(
                 )
 
     chains = torch.stack(chains, 0)
-
     return chains, meta
 
 

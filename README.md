@@ -1,5 +1,10 @@
 # Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
 
+![GitHub CI](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/python-package.yml/badge.svg?branch=master) 
+
+<!-- [![HitCount](https://hits.dwyl.com/svsamsonov/ex2mcmc_new.svg)](https://hits.dwyl.com/svsamsonov/ex2mcmc_new) -->
+
+
 [[ArXiv]](https://arxiv.org/abs/2111.02702)
 
 Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey Naumov, Eric Moulines.
@@ -135,8 +140,8 @@ FlEx<sup>2</sup>MCMC  vs     NUTS:
 | Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
 | Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xmBOZr1YhN8E7Y8GuwjgdM7hqaCgE6ik?usp=sharing) |
 | FlEx for Mixture of Gaussians          |   ```experiments/exp_synthetic/flex_mog.ipynb```    | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cy3Ion97F1kIWMNkF6wl-XODnfP9VQ5u?usp=sharing) |
-| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [TBD]() |
-| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [TBD]() |
+| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/16ZjJH8id__6aPPeCPFEQXO86kvFBO1wb?usp=sharing) |
+| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/15MwmA3kY7sSPmk2i3mm1TUc_Vg-AJC8g?usp=sharing) |
 
 To reproduce the experimets on banana-shaped and funnel distributions:
 
