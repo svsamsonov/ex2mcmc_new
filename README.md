@@ -1,4 +1,4 @@
-# Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
+# Ex2MCMC: Local-Global MCMC kernels: the best of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
 ## Implementation of Ex2MCMC, FlEx2MCMC and experiments
 
 [![build](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml/badge.svg)](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml) 
@@ -14,10 +14,10 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 > **Abstract:** *In the present paper we study an Explore-Exploit Markov chain Monte Carlo strategy (Ex2MCMC) that combines local and global samplers showing that it enjoys the advantages of both approaches. We prove V-uniform geometric ergodicity of Ex2MCMC without requiring a uniform adaptation of the global sampler to the target distribution. We also compute explicit bounds on the mixing rate of the Explore-Exploit strategy under realistic conditions. Moreover, we also analyze an adaptive version of the strategy (FlEx2MCMC) where a normalizing flow is trained while sampling to serve as a proposal for global moves. We illustrate the efficiency of Ex2MCMC and its adaptive version on classical sampling benchmarks as well as in sampling high-dimensional distributions defined by Generative Adversarial Networks seen as Energy Based Models.*
 > 
-<!-- This repository contains Python code to reproduce experiments from [**Local-Global MCMC kernels: the bost of both worlds**](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html) (NeurIPS'22). -->
+<!-- This repository contains Python code to reproduce experiments from [**Local-Global MCMC kernels: the best of both worlds**](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html) (NeurIPS'22). -->
 
 
-- [Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) \[Paper\]](#ex2mcmc-local-global-mcmc-kernels-the-bost-of-both-worlds-neurips-2022-paper)
+- [Ex2MCMC: Local-Global MCMC kernels: the best of both worlds (NeurIPS 2022) \[Paper\]](#ex2mcmc-local-global-mcmc-kernels-the-best-of-both-worlds-neurips-2022-paper)
   - [Implementation of Ex2MCMC, FlEx2MCMC and experiments](#implementation-of-ex2mcmc-flex2mcmc-and-experiments)
     - [Introduction](#introduction)
       - [Single chain mixing](#single-chain-mixing)
