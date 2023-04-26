@@ -51,7 +51,7 @@ Metrics:
 <!-- <img src="./imgs/energy_flex.png" alt="Energy" width="270"/>  -->
 
 
-Samples: 
+Samples from SNGAN with FlEx2MCMC: 
 
 <img src="./imgs/flex_sngan.png" alt="SNGAN with FlEx2MCMC" width="1200"/>
 
