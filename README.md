@@ -153,7 +153,7 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
  
  ```experiments/exp_mnist/JSGAN_samples.ipynb``` [TBD]()
 
- ```experiments/exp_mnist/WGAN_samples.ipynb``` [TBD]()
+ ```experiments/exp_mnist/WGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1aarHEdILfnR-vB0j7NN4uBurti08BtZk?usp=sharing)
 
  ### Experiments with GANs on CIFAR10 dataset
 
