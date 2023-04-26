@@ -1,11 +1,14 @@
 # Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
+## Implementation of Ex2MCMC, FlEx2MCMC and experiments
 
-[![build](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml/badge.svg)](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml)
+[![build](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml/badge.svg)](https://github.com/svsamsonov/ex2mcmc_new/actions/workflows/main.yml) 
+[![pypi](http://img.shields.io/pypi/v/ex2mcmc)](https://pypi.org/project/ex2mcmc/)
+
 
 <!-- [![HitCount](https://hits.dwyl.com/svsamsonov/ex2mcmc_new.svg)](https://hits.dwyl.com/svsamsonov/ex2mcmc_new) -->
-
-
 [[ArXiv]](https://arxiv.org/abs/2111.02702)
+
+### Introduction
 
 Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey Naumov, Eric Moulines.
 
@@ -15,29 +18,32 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 
 - [Ex2MCMC: Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022) \[Paper\]](#ex2mcmc-local-global-mcmc-kernels-the-bost-of-both-worlds-neurips-2022-paper)
-  - [Single chain mixing](#single-chain-mixing)
-  - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
-  - [Algorithms](#algorithms)
-  - [Installation](#installation)
-    - [Developement installation](#developement-installation)
-    - [Download checkpoints and stats](#download-checkpoints-and-stats)
-  - [Usage](#usage)
-    - [Demonstration on SNGAN](#demonstration-on-sngan)
-    - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
-    - [Experiments with GANs on MNIST dataset](#experiments-with-gans-on-mnist-dataset)
-    - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
-    - [Sampling and FID computation](#sampling-and-fid-computation)
-  - [Results](#results)
-    - [FID and Inception Score (CIFAR10)](#fid-and-inception-score-cifar10)
-    - [Energy landscape approximation (MNIST)](#energy-landscape-approximation-mnist)
-    - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
-  - [Citation](#citation)
+  - [Implementation of Ex2MCMC, FlEx2MCMC and experiments](#implementation-of-ex2mcmc-flex2mcmc-and-experiments)
+    - [Introduction](#introduction)
+      - [Single chain mixing](#single-chain-mixing)
+      - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
+    - [Algorithms](#algorithms)
+    - [Requirements](#requirements)
+    - [Installation](#installation)
+      - [Developement installation](#developement-installation)
+      - [Download checkpoints and stats](#download-checkpoints-and-stats)
+    - [Usage](#usage)
+      - [Demonstration on SNGAN](#demonstration-on-sngan)
+      - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
+      - [Experiments with GANs on MNIST dataset](#experiments-with-gans-on-mnist-dataset)
+      - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
+      - [Sampling and FID computation](#sampling-and-fid-computation)
+    - [Results](#results)
+      - [FID and Inception Score (CIFAR10)](#fid-and-inception-score-cifar10)
+      - [Energy landscape approximation (MNIST)](#energy-landscape-approximation-mnist)
+      - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
+    - [Citation](#citation)
 
-## Single chain mixing
+#### Single chain mixing
 
 <img src="./imgs/gaussian_mixture.png" alt="i-SIR" width="900"/>
 
-## Sampling from GAN as Energy-Based Models with MCMC
+#### Sampling from GAN as Energy-Based Models with MCMC
 
 Metrics:
 
@@ -50,7 +56,7 @@ Samples:
 <img src="./imgs/flex_sngan.png" alt="SNGAN with FlEx2MCMC" width="1200"/>
 
 
-## Algorithms 
+### Algorithms 
 <!-- **i-SIR:**
 
 <img src="./algs/isir.png" alt="i-SIR" width="600"/> -->
@@ -63,7 +69,16 @@ Samples:
 
 <img src="./imgs/flex.png" alt="FlEx<sup>2</sup>MCMC" width="600"/>
 
-## Installation
+### Requirements
+
+* Python >= 3.8
+* PyTorch >= 1.8.0
+* torchvision
+* pyro-ppl
+* Jax
+* POT
+
+### Installation
 
 Create environment:
 
@@ -77,7 +92,7 @@ pip install ex2mcmc
 pip install git+https://github.com/kwotsin/mimicry.git
 ```
 
-### Developement installation
+#### Developement installation
 
 Install poetry (if absent):
 ```bash
@@ -91,7 +106,7 @@ poetry install --with dev
 poetry add git+https://github.com/kwotsin/mimicry.git@a7fda06c4aff1e6af8dc4c4a35ed6636e434c766
 ```
 
-### Download checkpoints and stats
+#### Download checkpoints and stats
 
 CIFAR10 checkpoints:
 
@@ -122,13 +137,13 @@ mkdir -p stats & gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifa
 
 <!-- | WGAN GP   | --        |   [TBD]() |   [TBD]() | -->
 
-## Usage
+### Usage
 
-### Demonstration on SNGAN
+#### Demonstration on SNGAN
 
 Try with colab:  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EQQ_OdwCLn5MsOzlG-GS7yNcjTBU-KMp?usp=sharing)
 
- ### Experiments with synthetic distributions:
+#### Experiments with synthetic distributions:
 
 FlEx<sup>2</sup>MCMC  vs     NUTS:
 
@@ -149,13 +164,13 @@ To reproduce the experimets on banana-shaped and funnel distributions:
 python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana,funnel} --device cuda:0
 ```
 
- ### Experiments with GANs on MNIST dataset
+ #### Experiments with GANs on MNIST dataset
  
  ```experiments/exp_mnist/JSGAN_samples.ipynb``` [TBD]()
 
  ```experiments/exp_mnist/WGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1aarHEdILfnR-vB0j7NN4uBurti08BtZk?usp=sharing)
 
- ### Experiments with GANs on CIFAR10 dataset
+ #### Experiments with GANs on CIFAR10 dataset
 
 ```experiments/exp_cifar10_demo/DCGAN_samples.ipynb``` 
 
@@ -165,7 +180,7 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 
 <!-- [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() -->
 
-### Sampling and FID computation
+#### Sampling and FID computation
 
 ```bash
 python experiments/exp_cifar10_fid/run.py configs/mcmc_configs/{ula,mala,isir,ex2mcmc,flex2mcmc}.yml configs/mmc_dcgan.yml
@@ -177,9 +192,9 @@ To run a full experiment:
 chmod +x experiments/exp_cifar10_fid/run.sh & ./experiments/exp_cifar10_fid/run.sh
 ```
 
-## Results
+### Results
 
-### FID and Inception Score (CIFAR10)
+#### FID and Inception Score (CIFAR10)
 | GAN | MCMC | Steps | Inception Score | FID  |
 |:----|:-----|:------:|:---------------:|:----:|
 |DCGAN| none | 0     |       6.3          |  28.4    |
@@ -190,14 +205,14 @@ chmod +x experiments/exp_cifar10_fid/run.sh & ./experiments/exp_cifar10_fid/run.
 |DCGAN| FlEx<sup>2</sup>MCMC (our) | 180 |   7.62      |  **17.1**    |
 
 
-### Energy landscape approximation (MNIST)
+#### Energy landscape approximation (MNIST)
 
 Projection of GAN samples onto the energy landsape when trained on MNIST dataset:
 
 <img src="./imgs/energy_landscape.png" alt="energy landscape" width="600"/> 
 
 
-### Sampling trajectories (CIFAR10)
+#### Sampling trajectories (CIFAR10)
 Generation trajectories for DCGAN.
 
 <!-- , top to bottom: ULA, MALA, i-SIR, Ex<sup>2</sup>MCMC, FlEx<sup>2</sup>MCMC: -->
@@ -224,7 +239,7 @@ Generation trajectories for DCGAN.
 
 <img src="./imgs/mmc_dcgan_flex2mcmc.png" alt="CIFAR10 generations with FlEx2MCMC" width="600"/> 
 
-## Citation
+### Citation
 
 ```bibtex
 @article{samsonov2022local,

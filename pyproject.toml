@@ -16,15 +16,15 @@ documentation = "http://github.com/svsamsonov/ex2mcmc_new/blob/master/README.md"
 license = "MIT"
 keywords = ["mcmc", "adaptive mcmc", "ex2mcmc", "sampling", "normalizing flow"]
 
-[tool.poetry.group.main.dependencies]
+[tool.poetry.dependencies]
 python = ">= 3.8"
-torch = "^2.0.0"
+torch = ">= 1.8.0"
 torchvision = "*"
-seaborn = "^0.12.2"
-pyro-ppl = "^1.8.4"
-pot = "^0.9.0"
-jaxlib = "^0.4.7"
-jax = "^0.4.8"
+seaborn = "*"
+pyro-ppl = "*"
+pot = "*"
+jaxlib = "*"
+jax = "*"
 gdown = "*"
 "ruamel.yaml" = "*"
 easydict = "*"
@@ -34,12 +34,12 @@ tensorflow = {version = "~2.11.1", python = "~3.8"}
 black = {extras = ["jupyter"], version = "^23.3.0"}
 isort = "^5.12.0"
 flake8 = "5.0.4"
-pre-commit = "^3.1.1"
+pre-commit = "*"
 docker = "^6.0.1"
 jupyter = "*"
 ipykernel = "*"
 ipython = "*"
-pytest = "^7.3.1"
+pytest = "*"
 
 [tool.black]
 target-version = ["py38"]
