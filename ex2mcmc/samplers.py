@@ -416,7 +416,7 @@ def ex2mcmc(
             keep_graph=keep_graph,
         )
         step_size = meta["step_size"][-1]
-        point = points[-1]
+        point = points[-1].to(point.device)
         if not keep_graph:
             point = point.detach().requires_grad_()
         if step_id >= burn_in:
@@ -477,10 +477,8 @@ def flex2mcmc(
     point.requires_grad_(True)
     point.grad = None
 
-    # hist_proposals = None
-
     meta["logp"] = target.log_prob(point)  #
-    meta["logp"] = meta.get("logp", target.log_prob(point))
+    # meta["logp"] = meta.get("logp", target.log_prob(point))
 
     pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
     for step_id in pbar:
@@ -517,7 +515,7 @@ def flex2mcmc(
                 meta=meta,
             )
             step_size = meta["step_size"][-1]
-            point = points[-1]
+            point = points[-1].to(point.device)
 
         # meta.pop("logp")
         # meta.pop("grad")

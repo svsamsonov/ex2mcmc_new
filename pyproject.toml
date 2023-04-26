@@ -1,19 +1,44 @@
 [tool.poetry]
 name = "ex2mcmc"
-version = "0.0.1"
+version = "0.0.4"
 description = "Local-Global MCMC kernels: the bost of both worlds (NeurIPS 2022)"
 authors = [
-    "Sergey Samsonov <svsamsonov@hse.ru>", "Evgeny Lagutin <lagutin.em@phystech.edu>", 
+    "Sergey Samsonov <svsamsonov@hse.ru>", 
+    "Evgeny Lagutin <lagutin.em@phystech.edu>", 
     "Marylou Gabrié", "Alain Durmus", "Alexey Naumov", "Eric Moulines"
     ]
 maintainers = [
-    "Sergey Samsonov <svsamsonov@hse.ru>", "Evgeny Lagutin <lagutin.em@phystech.edu>"
+   "Evgeny Lagutin <lagutin.em@phystech.edu>", "Sergey Samsonov <svsamsonov@hse.ru>"
 ]
 readme = "README.md"
 repository = "http://github.com/svsamsonov/ex2mcmc_new.git"
 documentation = "http://github.com/svsamsonov/ex2mcmc_new/blob/master/README.md"
 license = "MIT"
-keywords = ["mcmc", "adaptive mcmc", "ex2mcmc", ""]
+keywords = ["mcmc", "adaptive mcmc", "ex2mcmc", "sampling", "normalizing flow"]
+
+[tool.poetry.dependencies]
+python = ">= 3.8"
+torch = "^2.0.0"
+torchvision = "*"
+seaborn = "^0.12.2"
+pyro-ppl = "^1.8.4"
+pot = "^0.9.0"
+jaxlib = "^0.4.7"
+jax = "^0.4.8"
+gdown = "*"
+"ruamel.yaml" = "*"
+easydict = "*"
+
+[tool.poetry.dev-dependencies]
+tensorflow = {version = "~2.11.1", python = "~3.8"}
+black = {extras = ["jupyter"], version = "^23.3.0"}
+isort = "^5.12.0"
+flake8 = "5.0.4"
+pre-commit = "^3.1.1"
+docker = "^6.0.1"
+jupyter = "*"
+ipykernel = "*"
+ipython = "*"
 
 [tool.black]
 target-version = ["py38"]
@@ -33,28 +58,6 @@ exclude = '''
   | thirdparty
 )/
 '''
-
-[tool.poetry.dependencies]
-python = "~3.8"
-torch = "^2.0.0"
-torchvision = "*"
-tensorflow = "~2.11.1"
-black = {extras = ["jupyter"], version = "^23.3.0"}
-isort = "^5.12.0"
-flake8 = "5.0.4"
-ipykernel = "^6.21.3"
-ipython = "^8.11.0"
-seaborn = "^0.12.2"
-jupyter = "^1.0.0"
-ruamel-yaml = "^0.17.21"
-pre-commit = "^3.1.1"
-pyro-ppl = "^1.8.4"
-pot = "^0.9.0"
-easydict = "^1.10"
-jaxlib = "^0.4.7"
-jax = "^0.4.8"
-gdown = "^4.7.1"
-docker = "^6.0.1"
 
 [tool.isort]
 src_paths = ["."]
@@ -94,13 +97,14 @@ extend-ignore = """
     # E402: module level import not at top of file
     E402,
     """
-#per-file-ignores =
+per-file-ignores = """
     # F401: Module imported by unused (non-implicit modules)
     # TC002: Move third-party import '...' into a type-checking block
-    #__init__.py:F401,TC002,
+    __init__.py:F401,TC002,
     # ANN201: Missing return type annotation for public function
-    #tests/test_*:ANN201
-    #tests/**/test_*:ANN201
+    tests/test_*:ANN201
+    tests/**/test_*:ANN201
+    """
 extend-exclude = """
     # Frozen and not subject to change in this repo:
     thirdparty/*,
@@ -115,4 +119,4 @@ extend-exclude = """
     min_confidence = 80
     paths = ["ex2mcmc"]
     sort_by_size = true
-    verbose = false #true
+    verbose = false

@@ -107,7 +107,7 @@ class Sampler:
         for it in self.trange(1, n_steps + 1):
             new_z, meta = self.step(z, it, meta=meta, keep_graph=keep_graph)
             if it > self.start_sample:
-                z = new_z
+                z = new_z.to(z.device)
 
             if it > self.burn_in_steps and it % self.save_every == 0:
                 if keep_graph:

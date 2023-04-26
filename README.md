@@ -24,8 +24,8 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
     - [Sampling and FID computation](#sampling-and-fid-computation)
   - [Results](#results)
     - [FID and Inception Score (CIFAR10)](#fid-and-inception-score-cifar10)
-    - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
     - [Energy landscape approximation (MNIST)](#energy-landscape-approximation-mnist)
+    - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
   - [Citation](#citation)
 
 ## Single chain mixing
@@ -34,9 +34,15 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 ## Sampling from GAN as Energy-Based Models with MCMC
 
+Metrics:
 
 <img src="./imgs/fid_flex.png" alt="FID" width="385"/> <img src="./imgs/is_flex.png" alt="Inception Score" width="400"/> 
 <!-- <img src="./imgs/energy_flex.png" alt="Energy" width="270"/>  -->
+
+
+Samples: 
+
+<img src="./imgs/flex_sngan.png" alt="SNGAN with FlEx2MCMC" width="1200"/>
 
 
 ## Algorithms 
@@ -62,7 +68,7 @@ conda activate ex2mcmc
 ```
 
 ```bash
-pip install ex2mcmc==0.0.1
+pip install ex2mcmc
 pip install git+https://github.com/kwotsin/mimicry.git
 ```
 
@@ -76,7 +82,7 @@ poetry config virtualenvs.create false
 
 Install the project:
 ```bash
-poetry install
+poetry install --with dev
 poetry add git+https://github.com/kwotsin/mimicry.git@a7fda06c4aff1e6af8dc4c4a35ed6636e434c766
 ```
 
@@ -128,8 +134,9 @@ FlEx<sup>2</sup>MCMC  vs     NUTS:
 |:----------|:-------|:-----:|
 | Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
 | Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xmBOZr1YhN8E7Y8GuwjgdM7hqaCgE6ik?usp=sharing) |
-| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
-| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]() |
+| FlEx for Mixture of Gaussians          |   ```experiments/exp_synthetic/flex_mog.ipynb```    | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cy3Ion97F1kIWMNkF6wl-XODnfP9VQ5u?usp=sharing) |
+| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [TBD]() |
+| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [TBD]() |
 
 To reproduce the experimets on banana-shaped and funnel distributions:
 
@@ -139,9 +146,9 @@ python experiments/exp_synthetic/banana_funnel_metrics.py --distribution {banana
 
  ### Experiments with GANs on MNIST dataset
  
- ```experiments/exp_mnist/JSGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
+ ```experiments/exp_mnist/JSGAN_samples.ipynb``` [TBD]()
 
- ```experiments/exp_mnist/WGAN_samples.ipynb``` [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
+ ```experiments/exp_mnist/WGAN_samples.ipynb``` [TBD]()
 
  ### Experiments with GANs on CIFAR10 dataset
 
@@ -178,6 +185,13 @@ chmod +x experiments/exp_cifar10_fid/run.sh & ./experiments/exp_cifar10_fid/run.
 |DCGAN| FlEx<sup>2</sup>MCMC (our) | 180 |   7.62      |  **17.1**    |
 
 
+### Energy landscape approximation (MNIST)
+
+Projection of GAN samples onto the energy landsape when trained on MNIST dataset:
+
+<img src="./imgs/energy_landscape.png" alt="energy landscape" width="600"/> 
+
+
 ### Sampling trajectories (CIFAR10)
 Generation trajectories for DCGAN.
 
@@ -204,12 +218,6 @@ Generation trajectories for DCGAN.
 * FlEx<sup>2</sup>MCMC:
 
 <img src="./imgs/mmc_dcgan_flex2mcmc.png" alt="CIFAR10 generations with FlEx2MCMC" width="600"/> 
-
-### Energy landscape approximation (MNIST)
-
-Projection of GAN samples onto the energy landsape when trained on MNIST dataset:
-
-<img src="./imgs/energy_landscape.png" alt="energy landscape" width="600"/> 
 
 ## Citation
 

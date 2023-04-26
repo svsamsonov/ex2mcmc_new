@@ -30,14 +30,14 @@ gan_config:
     params:
       mean: *mean
       std: *std
-    ckpt_path: checkpoints/CIFAR10/SNGAN_Hinge/netG.pth
+    ckpt_path: ./checkpoints/CIFAR10/SNGAN_Hinge/netG.pth
   discriminator:
     name: MMCSNDiscriminator
     params:
       mean: *mean
       std: *std
       output_layer: identity
-    ckpt_path: checkpoints/CIFAR10/SNGAN_Hinge/netD.pth
+    ckpt_path: ./checkpoints/CIFAR10/SNGAN_Hinge/netD.pth
 
 
 distribution: &target_distribution

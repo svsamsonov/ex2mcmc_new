@@ -92,9 +92,7 @@ class GANWrapper:
         self.label = None
 
     def load_weights(self):
-        from ex2mcmc.utils.general_utils import PROJECT_PATH
-
-        gen_path = Path(PROJECT_PATH, self.config.generator.ckpt_path)
+        gen_path = Path(self.config.generator.ckpt_path)
         # if not gen_path.exists():
         #     subprocess.run(["dvc pull", gen_path.parent])
 
@@ -105,7 +103,7 @@ class GANWrapper:
             state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
             self.gen.load_state_dict(state_dict, strict=True)
 
-        dis_path = Path(PROJECT_PATH, self.config.discriminator.ckpt_path)
+        dis_path = Path(self.config.discriminator.ckpt_path)
         # if not dis_path.exists():
         #     subprocess.run(["dvc pull", dis_path.parent])
         state_dict = torch.load(
