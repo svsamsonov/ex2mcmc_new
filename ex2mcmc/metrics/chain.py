@@ -10,10 +10,9 @@ class Evolution:
         self,
         target_sample,
         **kwargs,
-    ):  # locs, sigma, target_log_prob, target_sample, sigma=0.05, scaler=None):
+    ):
         self.locs = kwargs.get("locs", None)
         self.sigma = kwargs.get("sigma", None)
-        self.target_log_prob = kwargs.get("target_log_prob", None)
         self.target_sample = target_sample
         self.scaler = kwargs.get("scaler", None)
         self.q = kwargs.get("q", 0.999)
@@ -137,7 +136,7 @@ class Evolution:
 
         return emd
 
-    def invoke(self, X_gen, D=None, compute_discrim_div=False):
+    def invoke(self, X_gen, compute_discrim_div=False):
         emd = Evolution.compute_emd(
             self.target_sample,
             X_gen.detach().cpu().numpy(),
@@ -163,34 +162,6 @@ class Evolution:
             self.high_quality_rate.append(h_q_r.item())
             jsd = Evolution.compute_jsd(assignment)
             self.jsd.append(jsd.item())
-
-        if self.target_log_prob is not None:
-            pi_d, pi_g, opt_ds, X = get_pis_estimate(
-                X_gen,
-                self.target_log_prob,
-                n_pts=4000,
-                sample_method="grid",
-                density_method="gmm",
-            )
-            kl = pi_g * (np.log(pi_g) - np.log(pi_d + 1e-10))
-            kl[pi_g == 0.0] = 0.0
-            kl = np.mean(kl).item()
-            self.kl_pis.append(kl)
-
-            m = 0.5 * (pi_g + pi_d)
-            js = 0.5 * (
-                pi_g * (np.log(pi_g) - np.log(m)) + pi_d * (np.log(pi_d) - np.log(m))
-            )
-            js[(pi_g == 0.0) + (pi_d == 0.0)] = 0.0
-            js = np.mean(js).item()
-            self.js_pis.append(js)
-
-            if self.scaler is not None and compute_discrim_div and D is not None:
-                ds = D(torch.FloatTensor(self.scaler.transform(X)))[:, 0]
-                div = torch.abs(ds - torch.FloatTensor(opt_ds))
-                # inf_dist = torch.max(div).item()
-                l2_dist = ((div**2).mean()).item() ** 0.5
-                self.l2_div.append(l2_dist)
 
     def as_dict(self):
         d = dict(
