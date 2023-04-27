@@ -376,9 +376,9 @@ def ex2mcmc(
     meta["step_size"] = meta.get("step_size", [])
 
     pbar = trange if verbose else range
-    
+
     meta["logp"] = meta.get("logp", target.log_prob(point))
-    
+
     for step_id in pbar(n_samples + burn_in):
         # points, meta = isir(
         #     point, target, proposal, 1, 0, project, n_particles=n_particles, meta=meta
@@ -470,14 +470,14 @@ def flex2mcmc(
     point = start.clone()
     point.requires_grad_(True)
     point.grad = None
-    
+
     meta = meta or dict()
     meta["sir_accept"] = meta.get("sir_accept", [])
     meta["forward_kl"] = meta.get("forward_kl", [])
     meta["backward_kl"] = meta.get("backward_kl", [])
-    
+
     pbar = trange(n_samples + burn_in) if verbose else range(n_samples + burn_in)
-    
+
     meta["logp"] = target.log_prob(point)  #
     # meta["logp"] = meta.get("logp", target.log_prob(point))
 

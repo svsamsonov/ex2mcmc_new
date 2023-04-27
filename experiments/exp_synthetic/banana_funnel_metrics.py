@@ -11,11 +11,11 @@ import pyro
 import torch
 from pyro.infer import MCMC, NUTS
 
+from ex2mcmc.metrics.chain import ESS, acl_spectrum
+from ex2mcmc.metrics.total_variation import average_total_variation
 from ex2mcmc.models.rnvp import RNVP
 from ex2mcmc.sampling_utils.adaptive_mc import Ex2MCMC, FlowMCMC
 from ex2mcmc.sampling_utils.distributions import Banana, Funnel, IndependentNormal
-from ex2mcmc.sampling_utils.metrics import ESS, acl_spectrum
-from ex2mcmc.sampling_utils.total_variation import average_total_variation
 
 
 def sample_nuts(

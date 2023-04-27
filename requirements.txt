@@ -1,8 +1,0 @@
-torch-mimicry @ git+https://github.com/kwotsin/mimicry.git
-tqdm
-pyro-ppl
-jaxlib
-jax
-easydict
-seaborn
-ruamel.yaml

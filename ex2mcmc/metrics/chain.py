@@ -1,54 +1,8 @@
 import numpy as np
 import ot
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from easydict import EasyDict as edict
-from scipy.stats import chi2, entropy, gaussian_kde
-from sklearn import mixture
-
-
-@torch.no_grad()
-def get_pis_estimate(
-    X_gen,
-    target_log_prob,
-    n_pts=4000,
-    sample_method="grid",
-    density_method="gmm",
-):
-    target_pdf = (
-        lambda x: target_log_prob(torch.FloatTensor(x)).exp().detach().cpu().numpy()
-    )
-
-    if density_method == "kde":
-        G_ker = gaussian_kde(X_gen.detach().cpu().numpy().reshape(2, -1))
-
-        def pi_g_f(x):
-            return G_ker.pdf(x.reshape(2, -1))
-
-    elif density_method == "gmm":
-        gm_g = mixture.GaussianMixture(n_components=25)
-        gm_g.fit(X_gen.detach().cpu().numpy())
-
-        def pi_g_f(x):
-            return np.exp(gm_g.score_samples(x))
-
-    def optD(x):
-        return target_pdf(x) / (target_pdf(x) + pi_g_f(x) + 1e-8)
-
-    if sample_method == "grid":
-        n_pts = int(n_pts**0.5)
-        X = np.mgrid[-3 : 3 : 4.0 / n_pts, -3 : 3 : 4.0 / n_pts].reshape(2, -1).T
-    elif sample_method == "mc":
-        pass
-
-    pi_d = target_pdf(X)
-    pi_g = pi_g_f(X)
-
-    opt_ds = optD(X)
-    opt_ds[pi_d < 1e-9] = 0.0
-
-    return pi_d, pi_g, opt_ds, X
+from scipy.stats import chi2
 
 
 class Evolution:

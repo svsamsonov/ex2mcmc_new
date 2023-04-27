@@ -13,19 +13,19 @@ import wandb
 from tqdm import trange
 
 from ex2mcmc.gan_distribution import Distribution, DistributionRegistry
+from ex2mcmc.metrics.compute_fid_tf import calculate_fid_given_paths
+from ex2mcmc.metrics.inception_score import (
+    MEAN_TRASFORM,
+    N_GEN_IMAGES,
+    STD_TRANSFORM,
+    get_inception_score,
+)
 from ex2mcmc.models.rnvp import RNVP  # noqa: F401
 from ex2mcmc.models.rnvp_minimal import MinimalRNVP
 from ex2mcmc.models.utils import GANWrapper
 from ex2mcmc.sample import Sampler
 from ex2mcmc.utils.callbacks import CallbackRegistry
 from ex2mcmc.utils.general_utils import DotConfig, IgnoreLabelDataset, random_seed
-from ex2mcmc.utils.metrics.compute_fid_tf import calculate_fid_given_paths
-from ex2mcmc.utils.metrics.inception_score import (
-    MEAN_TRASFORM,
-    N_GEN_IMAGES,
-    STD_TRANSFORM,
-    get_inception_score,
-)
 from experiments.tools.plot_results import plot_res
 
 

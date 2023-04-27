@@ -20,16 +20,6 @@ def get_loss(loss):
         raise NotImplementedError
 
 
-def entropy(target, proposal, flow, y, acc_rate=1.0):
-    u = proposal.sample(y.shape[:-1])
-    x, log_jac = flow.inverse(u)
-    entr = -proposal.log_prob(u) + log_jac
-    entr = acc_rate * entr
-    grad_est = entr
-
-    return entr.mean(), grad_est.mean()
-
-
 def forward_kl(target, proposal, flow, x):
     x_ = x.detach().requires_grad_()
     z, log_jac = flow.forward(x_)

@@ -1,3 +1,5 @@
+<img src="./imgs/gaussian_mixture.png" alt="i-SIR" width="900"/>
+
 # Ex2MCMC: Local-Global MCMC kernels: the best of both worlds (NeurIPS 2022) [[Paper]](https://proceedings.neurips.cc/paper_files/paper/2022/hash/21c86d5b10cdc28664ccdadf0a29065a-Abstract-Conference.html)
 ## Implementation of Ex2MCMC, FlEx2MCMC and experiments
 
@@ -5,12 +7,8 @@
 [![pypi](http://img.shields.io/pypi/v/ex2mcmc)](https://pypi.org/project/ex2mcmc/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/svsamsonov/ex2mcmc_new/blob/master/LICENSE)
 [![CodeFactor](https://www.codefactor.io/repository/github/svsamsonov/ex2mcmc_new/badge)](https://www.codefactor.io/repository/github/svsamsonov/ex2mcmc_new)
-
-
-<!-- [![HitCount](https://hits.dwyl.com/svsamsonov/ex2mcmc_new.svg)](https://hits.dwyl.com/svsamsonov/ex2mcmc_new) -->
 [[ArXiv]](https://arxiv.org/abs/2111.02702)
 
-### Introduction
 
 Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey Naumov, Eric Moulines.
 
@@ -21,16 +19,13 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 - [Ex2MCMC: Local-Global MCMC kernels: the best of both worlds (NeurIPS 2022) \[Paper\]](#ex2mcmc-local-global-mcmc-kernels-the-best-of-both-worlds-neurips-2022-paper)
   - [Implementation of Ex2MCMC, FlEx2MCMC and experiments](#implementation-of-ex2mcmc-flex2mcmc-and-experiments)
-    - [Introduction](#introduction)
-      - [Single chain mixing](#single-chain-mixing)
-      - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
+    - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
     - [Algorithms](#algorithms)
+    - [Quick start](#quick-start)
     - [Requirements](#requirements)
     - [Installation](#installation)
-      - [Developement installation](#developement-installation)
-      - [Download checkpoints and stats](#download-checkpoints-and-stats)
+    - [Checkpoints](#checkpoints)
     - [Usage](#usage)
-      - [Demonstration on SNGAN](#demonstration-on-sngan)
       - [Experiments with synthetic distributions:](#experiments-with-synthetic-distributions)
       - [Experiments with GANs on MNIST dataset](#experiments-with-gans-on-mnist-dataset)
       - [Experiments with GANs on CIFAR10 dataset](#experiments-with-gans-on-cifar10-dataset)
@@ -41,11 +36,7 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
       - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
     - [Citation](#citation)
 
-#### Single chain mixing
-
-<img src="./imgs/gaussian_mixture.png" alt="i-SIR" width="900"/>
-
-#### Sampling from GAN as Energy-Based Models with MCMC
+### Sampling from GAN as Energy-Based Models with MCMC
 
 Metrics:
 
@@ -71,6 +62,15 @@ Samples from SNGAN with FlEx2MCMC:
 
 <img src="./imgs/flex.png" alt="FlEx<sup>2</sup>MCMC" width="600"/>
 
+
+### Quick start
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cy3Ion97F1kIWMNkF6wl-XODnfP9VQ5u?usp=sharing)
+
+```bash
+pip install ex2mcmc
+pip install git+https://github.com/kwotsin/mimicry.git
+```
+
 ### Requirements
 
 * Python >= 3.8
@@ -83,18 +83,10 @@ Samples from SNGAN with FlEx2MCMC:
 ### Installation
 
 Create environment:
-
 ```bash
 conda create -n ex2mcmc python=3.8
 conda activate ex2mcmc
 ```
-
-```bash
-pip install ex2mcmc
-pip install git+https://github.com/kwotsin/mimicry.git
-```
-
-#### Developement installation
 
 Install poetry (if absent):
 ```bash
@@ -108,7 +100,7 @@ poetry install --with dev
 poetry add git+https://github.com/kwotsin/mimicry.git@a7fda06c4aff1e6af8dc4c4a35ed6636e434c766
 ```
 
-#### Download checkpoints and stats
+### Checkpoints
 
 CIFAR10 checkpoints:
 
@@ -141,9 +133,7 @@ mkdir -p stats & gdown 1jjgB_iuvmoVAXPRvVTI_hBfuIz7mQgOg -O stats/fid_stats_cifa
 
 ### Usage
 
-#### Demonstration on SNGAN
-
-Try with colab:  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EQQ_OdwCLn5MsOzlG-GS7yNcjTBU-KMp?usp=sharing)
+Demonstration on SNGAN:  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EQQ_OdwCLn5MsOzlG-GS7yNcjTBU-KMp?usp=sharing)
 
 #### Experiments with synthetic distributions:
 
@@ -155,10 +145,10 @@ FlEx<sup>2</sup>MCMC  vs     NUTS:
 | Experiment | Path | Colab |
 |:----------|:-------|:-----:|
 | Toyish Gaussian   |     ```experiments/exp_synthetic/toyish_gaussian.ipynb``` | [TBD]() |
-| Gaussian mixture  |     ```experiments/exp_synthetic/gaussian_mixture.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xmBOZr1YhN8E7Y8GuwjgdM7hqaCgE6ik?usp=sharing) |
-| FlEx for Mixture of Gaussians          |   ```experiments/exp_synthetic/flex_mog.ipynb```    | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cy3Ion97F1kIWMNkF6wl-XODnfP9VQ5u?usp=sharing) |
-| FlEx for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/16ZjJH8id__6aPPeCPFEQXO86kvFBO1wb?usp=sharing) |
-| FlEx for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/15MwmA3kY7sSPmk2i3mm1TUc_Vg-AJC8g?usp=sharing) |
+| Ex2MCMC for Mixture of Gaussians  |     ```experiments/exp_synthetic/ex2mcmc_mog.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xmBOZr1YhN8E7Y8GuwjgdM7hqaCgE6ik?usp=sharing) |
+| FlEx2MCMC for Mixture of Gaussians          |   ```experiments/exp_synthetic/flex_mog.ipynb```    | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cy3Ion97F1kIWMNkF6wl-XODnfP9VQ5u?usp=sharing) |
+| FlEx2MCMC for banana-shaped distribution   |     ```experiments/exp_synthetic/flex_banana.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/16ZjJH8id__6aPPeCPFEQXO86kvFBO1wb?usp=sharing) |
+| FlEx2MCMC for Neal's funnel distribution   |     ```experiments/exp_synthetic/flex_funnel.ipynb``` | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/15MwmA3kY7sSPmk2i3mm1TUc_Vg-AJC8g?usp=sharing) |
 
 To reproduce the experimets on banana-shaped and funnel distributions:
 
