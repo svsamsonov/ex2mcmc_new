@@ -51,7 +51,7 @@ def plot_result(
     ymin, ymax = axs[0].get_ylim()
 
     axs[0].scatter(
-        *result[:, proj_slice].T, alpha=min(0.6, 1000.0 / result.shape[0]), s=10
+        *result[:, proj_slice].T, alpha=min(0.6, 1000.0 / result.shape[0]), s=30, c='coral', edgecolors='black', linewidth=0.5,
     )  # , c='r', marker='o')
     axs[0].set_title(f"Projected samples from {chains.shape[1]} chains")
 
@@ -61,14 +61,14 @@ def plot_result(
     X, Y = np.meshgrid(x, y)
     positions = np.vstack([X.ravel(), Y.ravel()])
     kde = np.reshape(kernel(positions).T, X.shape)
-    axs[1].contour(X, Y, kde, cmap="inferno")
+    axs[1].contour(X, Y, kde, colors='midnightblue', linewidths=1)
     axs[1].set_title(f"KDE")
 
     chain_id = 0
     result = chains[:, chain_id]
     dist.plot_2d_countour(axs[2])
     axs[2].plot(
-        *result[:, proj_slice].T, "-", alpha=min(0.6, 1000.0 / result.shape[0])
+        *result[:, proj_slice].T, "-", alpha=min(0.6, 1000.0 / result.shape[0]), c='coral', linewidth=1, marker='o', markersize=1, mec='black'
     )  # , c='k')
     axs[2].set_title(f"Trajectory of chain {chain_id}")
 
@@ -76,7 +76,7 @@ def plot_result(
         flow_sample = flow.sample((10000,)).detach().cpu()
         kernel = gaussian_kde(flow_sample[:, proj_slice].T)
         kde = np.reshape(kernel(positions).T, X.shape)
-        axs[3].contour(X, Y, kde, cmap="inferno")
+        axs[3].contour(X, Y, kde, colors='midnightblue', linewidths=1)
         axs[3].set_title(f"KDE of NF samples")
 
     for ax in axs:

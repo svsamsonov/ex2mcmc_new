@@ -19,7 +19,7 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
 
 - [Ex2MCMC: Local-Global MCMC kernels: the best of both worlds (NeurIPS 2022) \[Paper\]](#ex2mcmc-local-global-mcmc-kernels-the-best-of-both-worlds-neurips-2022-paper)
   - [Implementation of Ex2MCMC, FlEx2MCMC and experiments](#implementation-of-ex2mcmc-flex2mcmc-and-experiments)
-    - [Sampling from GAN as Energy-Based Models with MCMC](#sampling-from-gan-as-energy-based-models-with-mcmc)
+    - [Sampling from GAN as Energy-Based Model with MCMC](#sampling-from-gan-as-energy-based-model-with-mcmc)
     - [Algorithms](#algorithms)
     - [Quick start](#quick-start)
     - [Requirements](#requirements)
@@ -36,7 +36,7 @@ Authors: Sergey Samsonov, Evgeny Lagutin, Marylou Gabrié, Alain Durmus, Alexey 
       - [Sampling trajectories (CIFAR10)](#sampling-trajectories-cifar10)
     - [Citation](#citation)
 
-### Sampling from GAN as Energy-Based Models with MCMC
+### Sampling from GAN as Energy-Based Model with MCMC
 
 Metrics:
 
